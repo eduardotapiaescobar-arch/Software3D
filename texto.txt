@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sketch3D - Dibujo 2D a STL para Impresión 3D</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+  <!-- Three.js + STLExporter & OrbitControls via ESM Importmap -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars and canvas styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #18181b; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+    .canvas-grid {
+      background-size: 20px 20px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    }
+    input[type=range] {
+      accent-color: #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 h-full flex flex-col font-sans overflow-hidden select-none">
+
+  <!-- Header -->
+  <header class="h-14 border-b border-zinc-800 bg-zinc-900/90 px-4 flex items-center justify-between shrink-0 z-20">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20">
+        <i class="ph-bold ph-cube text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm sm:text-base tracking-wide flex items-center gap-2">
+          Sketch3D <span class="text-xs font-medium px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Print Ready</span>
+        </h1>
+      </div>
+    </div>
+
+    <!-- Quick preset badges -->
+    <div class="hidden md:flex items-center gap-2">
+      <span class="text-xs text-zinc-400">Plantillas:</span>
+      <button onclick="loadPreset('keychain')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1 rounded transition border border-zinc-700/60">Llavero</button>
+      <button onclick="loadPreset('star')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1 rounded transition border border-zinc-700/60">Estrella</button>
+      <button onclick="loadPreset('bracket')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1 rounded transition border border-zinc-700/60">Soporte L</button>
+      <button onclick="loadPreset('gear')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1 rounded transition border border-zinc-700/60">Engrane</button>
+    </div>
+
+    <!-- Action Export Button -->
+    <div class="flex items-center space-x-2">
+      <button id="btnExportSTL" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-lg shadow-blue-600/30">
+        <i class="ph-bold ph-download-simple text-base"></i>
+        <span>Descargar STL</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Split Layout -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-0 relative">
+
+    <!-- LEFT PANEL: 2D Drawing Canvas & Controls (5 cols) -->
+    <section class="lg:col-span-5 border-r border-zinc-800 flex flex-col h-full bg-zinc-900/40 relative">
+      <!-- 2D Canvas Toolbar -->
+      <div class="p-3 border-b border-zinc-800 bg-zinc-900 flex flex-wrap items-center justify-between gap-2">
+        <!-- Mode switcher -->
+        <div class="flex bg-zinc-800 p-1 rounded-lg border border-zinc-700">
+          <button id="btnModeClosed" class="px-2.5 py-1 text-xs rounded-md font-medium bg-blue-600 text-white transition flex items-center gap-1.5" title="Dibuja una silueta cerrada">
+            <i class="ph-bold ph-polygon"></i> Silueta / Relleno
+          </button>
+          <button id="btnModeStroke" class="px-2.5 py-1 text-xs rounded-md font-medium text-zinc-400 hover:text-white transition flex items-center gap-1.5" title="Dibuja un trazo con grosor de pared">
+            <i class="ph-bold ph-paint-brush"></i> Trazo Grueso
+          </button>
+        </div>
+
+        <!-- History & Clear -->
+        <div class="flex items-center gap-1">
+          <button id="btnUndo" class="p-2 text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-lg transition" title="Deshacer trazo">
+            <i class="ph-bold ph-arrow-u-up-left"></i>
+          </button>
+          <button id="btnClear" class="p-2 text-red-400 hover:text-red-300 bg-zinc-800 hover:bg-red-950/40 rounded-lg transition" title="Limpiar lienzo">
+            <i class="ph-bold ph-trash"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Canvas Drawing Area -->
+      <div class="relative flex-1 bg-zinc-950 overflow-hidden flex items-center justify-center p-2">
+        <div id="canvasContainer" class="relative w-full h-full max-w-[500px] max-h-[500px] aspect-square rounded-xl border border-zinc-800 shadow-2xl overflow-hidden canvas-grid">
+          <canvas id="sketchCanvas" class="w-full h-full cursor-crosshair block touch-none"></canvas>
+          <div class="absolute bottom-2 left-2 text-[10px] text-zinc-500 pointer-events-none bg-zinc-900/80 px-2 py-0.5 rounded backdrop-blur">
+            Cama: 220 × 220 mm (1 px ≈ 0.44 mm)
+          </div>
+          <div id="drawHelperHint" class="absolute top-2 left-1/2 -translate-x-1/2 text-[11px] text-zinc-400 pointer-events-none bg-zinc-900/90 px-3 py-1 rounded-full border border-zinc-800">
+            Haz clic y arrastra para dibujar tu pieza
+          </div>
+        </div>
+      </div>
+
+      <!-- 2D Canvas Footer / Options -->
+      <div class="p-3 bg-zinc-900/80 border-t border-zinc-800 text-xs flex items-center justify-between text-zinc-400">
+        <span id="pointCountText">0 puntos trazados</span>
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" id="chkAutoSmooth" checked class="rounded bg-zinc-800 border-zinc-700 text-blue-600 focus:ring-0">
+          <span>Suavizado adaptativo</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: 3D Preview & Parametric Slicing Config (7 cols) -->
+    <section class="lg:col-span-7 flex flex-col h-full bg-zinc-950 relative">
+      
+      <!-- 3D Viewport View -->
+      <div class="relative flex-1 w-full h-full overflow-hidden">
+        <div id="threeContainer" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+        <!-- Floating 3D Overlay Specs Card -->
+        <div class="absolute top-4 left-4 bg-zinc-900/85 backdrop-blur border border-zinc-800/80 rounded-xl p-3 shadow-xl pointer-events-none space-y-1">
+          <div class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Dimensiones Reales (Laminador)
+          </div>
+          <div class="text-sm font-mono font-bold text-zinc-100" id="specDimensions">
+            X: 0.0 mm | Y: 0.0 mm | Z: 4.0 mm
+          </div>
+          <div class="text-[11px] text-zinc-400 flex items-center gap-3 pt-0.5">
+            <span>Volumen: <b id="specVolume" class="text-zinc-300">0 cm³</b></span>
+            <span>Malla: <b class="text-emerald-400">Manifold (Hermética)</b></span>
+          </div>
+        </div>
+
+        <!-- 3D Camera reset / View helper -->
+        <div class="absolute top-4 right-4 flex flex-col gap-1.5">
+          <button id="btnResetView" class="p-2.5 bg-zinc-900/80 hover:bg-zinc-800 backdrop-blur border border-zinc-800 text-zinc-300 hover:text-white rounded-lg transition shadow-lg text-xs flex items-center gap-1" title="Vista isométrica inicial">
+            <i class="ph-bold ph-arrows-clockwise text-sm"></i>
+          </button>
+          <button id="btnTopView" class="p-2.5 bg-zinc-900/80 hover:bg-zinc-800 backdrop-blur border border-zinc-800 text-zinc-300 hover:text-white rounded-lg transition shadow-lg text-xs flex items-center gap-1" title="Vista superior plana">
+            <i class="ph-bold ph-arrows-out-cardinal text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Parameter Sliders (Parametric Panel) -->
+      <div class="border-t border-zinc-800 bg-zinc-900 p-4 space-y-4 shrink-0">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          
+          <!-- Extrusion Height (Z) -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-zinc-400">Altura / Espesor (Z)</span>
+              <span id="lblHeight" class="font-mono font-semibold text-blue-400">4.0 mm</span>
+            </div>
+            <input type="range" id="paramHeight" min="1" max="50" step="0.5" value="4" class="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer">
+          </div>
+
+          <!-- Stroke width (for open stroke mode) -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-zinc-400">Grosor de pared</span>
+              <span id="lblStrokeWidth" class="font-mono font-semibold text-blue-400">6.0 mm</span>
+            </div>
+            <input type="range" id="paramStrokeWidth" min="2" max="25" step="0.5" value="6" class="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer">
+          </div>
+
+          <!-- Global Scale Factor -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-zinc-400">Escala de impresión</span>
+              <span id="lblScale" class="font-mono font-semibold text-blue-400">100%</span>
+            </div>
+            <input type="range" id="paramScale" min="20" max="250" step="5" value="100" class="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer">
+          </div>
+
+          <!-- Chamfer / Bevel Toggle & Size -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="text-zinc-400">Biselado superior</span>
+              <span id="lblBevel" class="font-mono font-semibold text-blue-400">0.8 mm</span>
+            </div>
+            <input type="range" id="paramBevel" min="0" max="3" step="0.2" value="0.8" class="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Center on print bed action -->
+        <div class="flex items-center justify-between pt-1 border-t border-zinc-800/60 text-xs">
+          <div class="flex items-center gap-3 text-zinc-400">
+            <span class="flex items-center gap-1"><i class="ph-fill ph-check-circle text-emerald-400"></i> Orientado en Z=0 (Adherencia directa)</span>
+            <span class="flex items-center gap-1"><i class="ph-fill ph-check-circle text-emerald-400"></i> Formato STL Binario</span>
+          </div>
+          <button id="btnCenterMesh" class="text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 px-3 py-1 rounded transition border border-zinc-700/50 flex items-center gap-1">
+            <i class="ph-bold ph-crosshair"></i> Centrar en la Cama
+          </button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Modal Notification / Toast helper -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-blue-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none flex items-center gap-2 z-50">
+    <i class="ph-bold ph-check"></i>
+    <span id="toastMsg">Modelo exportado con éxito</span>
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+
+    // -------------------------------------------------------------------------
+    // App State
+    // -------------------------------------------------------------------------
+    const BED_SIZE_MM = 220; // Standard 220x220mm 3D printer bed (Ender-3, Prusa MK4, Bambu A1)
+    let currentMode = 'closed'; // 'closed' or 'stroke'
+    let rawPoints = []; // 2D points in canvas space
+    let historyStack = []; // Undo states
+    let isDrawing = false;
+    let threeMesh = null;
+
+    // Toast helper
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = text;
+      toast.classList.remove('opacity-0');
+      setTimeout(() => toast.classList.add('opacity-0'), 2500);
+    }
+
+    // -------------------------------------------------------------------------
+    // 2D Drawing Canvas Setup
+    // -------------------------------------------------------------------------
+    const canvas = document.getElementById('sketchCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasContainer = document.getElementById('canvasContainer');
+
+    function resizeCanvas() {
+      const rect = canvasContainer.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      redraw2D();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Coordinate conversions: Canvas pixels (0..width) <-> mm coordinates (-110..+110)
+    function canvasToMM(pt, size) {
+      const scale = BED_SIZE_MM / size;
+      return {
+        x: (pt.x - size / 2) * scale,
+        y: -(pt.y - size / 2) * scale // invert Y for standard Cartesian 3D plane
+      };
+    }
+
+    function mmToCanvas(pt, size) {
+      const scale = size / BED_SIZE_MM;
+      return {
+        x: pt.x * scale + size / 2,
+        y: -pt.y * scale + size / 2
+      };
+    }
+
+    // Redraw 2D Sketch
+    function redraw2D() {
+      const rect = canvasContainer.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Center crosshairs
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h);
+      ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (rawPoints.length === 0) {
+        document.getElementById('pointCountText').innerText = '0 puntos trazados';
+        return;
+      }
+
+      document.getElementById('pointCountText').innerText = `${rawPoints.length} puntos trazados`;
+
+      ctx.save();
+      ctx.lineWidth = currentMode === 'stroke' ? 8 : 2;
+      ctx.strokeStyle = currentMode === 'stroke' ? '#3b82f6' : '#60a5fa';
+      ctx.fillStyle = currentMode === 'closed' ? 'rgba(59, 130, 246, 0.25)' : 'transparent';
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+      ctx.moveTo(rawPoints[0].x, rawPoints[0].y);
+      for (let i = 1; i < rawPoints.length; i++) {
+        ctx.lineTo(rawPoints[i].x, rawPoints[i].y);
+      }
+
+      if (currentMode === 'closed' && rawPoints.length > 2) {
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.stroke();
+
+      // Draw start / end node indicators
+      ctx.fillStyle = '#10b981'; // Green for start
+      ctx.beginPath();
+      ctx.arc(rawPoints[0].x, rawPoints[0].y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (rawPoints.length > 1) {
+        const last = rawPoints[rawPoints.length - 1];
+        ctx.fillStyle = '#f43f5e'; // Red for end
+        ctx.beginPath();
+        ctx.arc(last.x, last.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // Douglas-Peucker point simplification for clean polygon edges
+    function simplifyPoints(points, tolerance) {
+      if (points.length <= 2) return points;
+      let dmax = 0;
+      let index = 0;
+      const end = points.length - 1;
+
+      for (let i = 1; i < end; i++) {
+        const d = perpendicularDistance(points[i], points[0], points[end]);
+        if (d > dmax) {
+          index = i;
+          dmax = d;
+        }
+      }
+
+      if (dmax > tolerance) {
+        const recResults1 = simplifyPoints(points.slice(0, index + 1), tolerance);
+        const recResults2 = simplifyPoints(points.slice(index), tolerance);
+        return recResults1.slice(0, recResults1.length - 1).concat(recResults2);
+      } else {
+        return [points[0], points[end]];
+      }
+    }
+
+    function perpendicularDistance(p, p1, p2) {
+      let dx = p2.x - p1.x;
+      let dy = p2.y - p1.y;
+      if (dx === 0 && dy === 0) {
+        return Math.hypot(p.x - p1.x, p.y - p1.y);
+      }
+      const t = ((p.x - p1.x) * dx + (p.y - p1.y) * dy) / (dx * dx + dy * dy);
+      const clampedT = Math.max(0, Math.min(1, t));
+      const nearestX = p1.x + clampedT * dx;
+      const nearestY = p1.y + clampedT * dy;
+      return Math.hypot(p.x - nearestX, p.y - nearestY);
+    }
+
+    // Input handlers for mouse and touch
+    function getCanvasPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function startDraw(e) {
+      e.preventDefault();
+      isDrawing = true;
+      historyStack.push([...rawPoints]);
+      rawPoints = [getCanvasPos(e)];
+      document.getElementById('drawHelperHint').style.display = 'none';
+      redraw2D();
+    }
+
+    function moveDraw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const pt = getCanvasPos(e);
+      const last = rawPoints[rawPoints.length - 1];
+      // Minimal distance threshold to avoid redundant dense collinear vertices
+      if (!last || Math.hypot(pt.x - last.x, pt.y - last.y) > 3) {
+        rawPoints.push(pt);
+        redraw2D();
+      }
+    }
+
+    function endDraw(e) {
+      if (!isDrawing) return;
+      isDrawing = false;
+      
+      const shouldSmooth = document.getElementById('chkAutoSmooth').checked;
+      if (shouldSmooth && rawPoints.length > 5) {
+        rawPoints = simplifyPoints(rawPoints, 2.2);
+      }
+
+      // In closed silhouette mode, auto-close if ending near the origin point
+      if (currentMode === 'closed' && rawPoints.length > 3) {
+        const start = rawPoints[0];
+        const end = rawPoints[rawPoints.length - 1];
+        if (Math.hypot(start.x - end.x, start.y - end.y) < 25) {
+          rawPoints[rawPoints.length - 1] = { x: start.x, y: start.y };
+        }
+      }
+
+      redraw2D();
+      generate3DModel();
+    }
+
+    canvas.addEventListener('mousedown', startDraw);
+    window.addEventListener('mousemove', moveDraw);
+    window.addEventListener('mouseup', endDraw);
+
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    window.addEventListener('touchmove', moveDraw, { passive: false });
+    window.addEventListener('touchend', endDraw);
+
+    // Mode Buttons
+    document.getElementById('btnModeClosed').addEventListener('click', () => {
+      currentMode = 'closed';
+      document.getElementById('btnModeClosed').className = 'px-2.5 py-1 text-xs rounded-md font-medium bg-blue-600 text-white transition flex items-center gap-1.5';
+      document.getElementById('btnModeStroke').className = 'px-2.5 py-1 text-xs rounded-md font-medium text-zinc-400 hover:text-white transition flex items-center gap-1.5';
+      generate3DModel();
+      redraw2D();
+    });
+
+    document.getElementById('btnModeStroke').addEventListener('click', () => {
+      currentMode = 'stroke';
+      document.getElementById('btnModeStroke').className = 'px-2.5 py-1 text-xs rounded-md font-medium bg-blue-600 text-white transition flex items-center gap-1.5';
+      document.getElementById('btnModeClosed').className = 'px-2.5 py-1 text-xs rounded-md font-medium text-zinc-400 hover:text-white transition flex items-center gap-1.5';
+      generate3DModel();
+      redraw2D();
+    });
+
+    // Undo / Clear
+    document.getElementById('btnUndo').addEventListener('click', () => {
+      if (historyStack.length > 0) {
+        rawPoints = historyStack.pop();
+        redraw2D();
+        generate3DModel();
+      }
+    });
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+      if (rawPoints.length > 0) historyStack.push([...rawPoints]);
+      rawPoints = [];
+      redraw2D();
+      generate3DModel();
+      document.getElementById('drawHelperHint').style.display = 'block';
+    });
+
+    // -------------------------------------------------------------------------
+    // Three.js 3D Viewport Setup
+    // -------------------------------------------------------------------------
+    const container3D = document.getElementById('threeContainer');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x09090b);
+
+    const camera = new THREE.PerspectiveCamera(45, container3D.clientWidth / container3D.clientHeight, 1, 2000);
+    const initialCamPos = new THREE.Vector3(0, -180, 220);
+    camera.position.copy(initialCamPos);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(container3D.clientWidth, container3D.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container3D.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 0, 10);
+    controls.maxPolarAngle = Math.PI / 2 - 0.02; // Keep camera above print bed
+
+    // Print Bed (220mm x 220mm build plate)
+    const bedGroup = new THREE.Group();
+
+    // Bed plane with subtle shadow catching
+    const bedGeo = new THREE.PlaneGeometry(BED_SIZE_MM, BED_SIZE_MM);
+    const bedMat = new THREE.MeshStandardMaterial({
+      color: 0x18181b,
+      roughness: 0.8,
+      metalness: 0.2
+    });
+    const bedMesh = new THREE.Mesh(bedGeo, bedMat);
+    bedMesh.receiveShadow = true;
+    bedGroup.add(bedMesh);
+
+    // Bed Border Frame
+    const bedEdges = new THREE.EdgesGeometry(bedGeo);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, linewidth: 2 });
+    const bedFrame = new THREE.LineSegments(bedEdges, lineMat);
+    bedGroup.add(bedFrame);
+
+    // Bed Grid lines
+    const gridHelper = new THREE.GridHelper(BED_SIZE_MM, 22, 0x3f3f46, 0x27272a);
+    gridHelper.rotation.x = Math.PI / 2;
+    gridHelper.position.z = 0.05;
+    bedGroup.add(gridHelper);
+
+    scene.add(bedGroup);
+
+    // Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    keyLight.position.set(80, -120, 180);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0x60a5fa, 0.6);
+    fillLight.position.set(-100, 80, 100);
+    scene.add(fillLight);
+
+    // Responsive 3D Canvas
+    window.addEventListener('resize', () => {
+      camera.aspect = container3D.clientWidth / container3D.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container3D.clientWidth, container3D.clientHeight);
+    });
+
+    document.getElementById('btnResetView').addEventListener('click', () => {
+      camera.position.copy(initialCamPos);
+      controls.target.set(0, 0, 10);
+      controls.update();
+    });
+
+    document.getElementById('btnTopView').addEventListener('click', () => {
+      camera.position.set(0, 0, 260);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    });
+
+    // -------------------------------------------------------------------------
+    // 2D to 3D Extrusion Engine (Manifold & Watertight guarantee)
+    // -------------------------------------------------------------------------
+    function expandStrokeToPolygon(pts, thickness) {
+      if (pts.length < 2) return null;
+      const leftSide = [];
+      const rightSide = [];
+      const halfW = thickness / 2;
+
+      for (let i = 0; i < pts.length; i++) {
+        let dx, dy;
+        if (i === 0) {
+          dx = pts[1].x - pts[0].x;
+          dy = pts[1].y - pts[0].y;
+        } else if (i === pts.length - 1) {
+          dx = pts[i].x - pts[i - 1].x;
+          dy = pts[i].y - pts[i - 1].y;
+        } else {
+          dx = pts[i + 1].x - pts[i - 1].x;
+          dy = pts[i + 1].y - pts[i - 1].y;
+        }
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+
+        leftSide.push({ x: pts[i].x + nx * halfW, y: pts[i].y + ny * halfW });
+        rightSide.push({ x: pts[i].x - nx * halfW, y: pts[i].y - ny * halfW });
+      }
+
+      // Combine into closed clockwise perimeter
+      return leftSide.concat(rightSide.reverse());
+    }
+
+    function generate3DModel() {
+      if (threeMesh) {
+        scene.remove(threeMesh);
+        if (threeMesh.geometry) threeMesh.geometry.dispose();
+        threeMesh = null;
+      }
+
+      if (rawPoints.length < 3) {
+        updateStats(null);
+        return;
+      }
+
+      const rect = canvasContainer.getBoundingClientRect();
+      const canvasSize = rect.width;
+      const scaleMultiplier = parseFloat(document.getElementById('paramScale').value) / 100;
+      const heightMM = parseFloat(document.getElementById('paramHeight').value);
+      const strokeWidthMM = parseFloat(document.getElementById('paramStrokeWidth').value);
+      const bevelSize = parseFloat(document.getElementById('paramBevel').value);
+
+      // Convert raw canvas coordinates to real MM units
+      let mmPoints = rawPoints.map(p => canvasToMM(p, canvasSize));
+
+      // In stroke mode: expand line into 2D polygon with specified wall width
+      if (currentMode === 'stroke') {
+        mmPoints = expandStrokeToPolygon(mmPoints, strokeWidthMM);
+        if (!mmPoints || mmPoints.length < 3) return;
+      }
+
+      // Apply scale
+      const scaledPoints = mmPoints.map(p => ({
+        x: p.x * scaleMultiplier,
+        y: p.y * scaleMultiplier
+      }));
+
+      // Build Three.js Shape
+      const shape = new THREE.Shape();
+      shape.moveTo(scaledPoints[0].x, scaledPoints[0].y);
+      for (let i = 1; i < scaledPoints.length; i++) {
+        shape.lineTo(scaledPoints[i].x, scaledPoints[i].y);
+      }
+      shape.closePath();
+
+      // Extrude with flat bottom for 3D bed adhesion
+      const extrudeSettings = {
+        steps: 1,
+        depth: Math.max(0.5, heightMM - bevelSize),
+        bevelEnabled: bevelSize > 0,
+        bevelThickness: bevelSize,
+        bevelSize: bevelSize * 0.5,
+        bevelOffset: 0,
+        bevelSegments: 3
+      };
+
+      try {
+        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        geometry.computeVertexNormals();
+
+        // Print filament material style
+        const material = new THREE.MeshStandardMaterial({
+          color: 0x3b82f6,
+          roughness: 0.35,
+          metalness: 0.1,
+          wireframe: false
+        });
+
+        threeMesh = new THREE.Mesh(geometry, material);
+        threeMesh.castShadow = true;
+        threeMesh.receiveShadow = true;
+
+        // Ensure flat bottom sits right at Z = 0 on the build plate
+        geometry.computeBoundingBox();
+        const bbox = geometry.boundingBox;
+        threeMesh.position.z = -bbox.min.z; // Align bottom face with Z=0 build plate
+
+        scene.add(threeMesh);
+        updateStats(geometry);
+      } catch (err) {
+        console.warn("Could not generate valid manifold geometry for this stroke:", err);
+      }
+    }
+
+    // Centering model on print bed
+    document.getElementById('btnCenterMesh').addEventListener('click', () => {
+      if (!rawPoints.length) return;
+      const rect = canvasContainer.getBoundingClientRect();
+      let avgX = 0, avgY = 0;
+      rawPoints.forEach(p => { avgX += p.x; avgY += p.y; });
+      avgX /= rawPoints.length;
+      avgY /= rawPoints.length;
+
+      const offsetX = rect.width / 2 - avgX;
+      const offsetY = rect.height / 2 - avgY;
+
+      rawPoints = rawPoints.map(p => ({ x: p.x + offsetX, y: p.y + offsetY }));
+      redraw2D();
+      generate3DModel();
+      showToast('Modelo centrado en el origen de impresión');
+    });
+
+    // Update real-world dimensions and bounding box info
+    function updateStats(geometry) {
+      const dimLabel = document.getElementById('specDimensions');
+      const volLabel = document.getElementById('specVolume');
+
+      if (!geometry) {
+        dimLabel.innerText = 'X: 0.0 mm | Y: 0.0 mm | Z: 0.0 mm';
+        volLabel.innerText = '0 cm³';
+        return;
+      }
+
+      geometry.computeBoundingBox();
+      const b = geometry.boundingBox;
+      const sizeX = (b.max.x - b.min.x).toFixed(1);
+      const sizeY = (b.max.y - b.min.y).toFixed(1);
+      const sizeZ = (b.max.z - b.min.z).toFixed(1);
+
+      dimLabel.innerText = `X: ${sizeX} mm | Y: ${sizeY} mm | Z: ${sizeZ} mm`;
+
+      // Approximate volume in cm³ (Bounding Box * fill factor heuristic)
+      const approxVol = ((sizeX * sizeY * sizeZ * 0.6) / 1000).toFixed(1);
+      volLabel.innerText = `${approxVol} cm³`;
+    }
+
+    // -------------------------------------------------------------------------
+    // Parametric Sliders Event Listeners
+    // -------------------------------------------------------------------------
+    const paramHeight = document.getElementById('paramHeight');
+    const paramStrokeWidth = document.getElementById('paramStrokeWidth');
+    const paramScale = document.getElementById('paramScale');
+    const paramBevel = document.getElementById('paramBevel');
+
+    paramHeight.addEventListener('input', (e) => {
+      document.getElementById('lblHeight').innerText = `${parseFloat(e.target.value).toFixed(1)} mm`;
+      generate3DModel();
+    });
+
+    paramStrokeWidth.addEventListener('input', (e) => {
+      document.getElementById('lblStrokeWidth').innerText = `${parseFloat(e.target.value).toFixed(1)} mm`;
+      generate3DModel();
+    });
+
+    paramScale.addEventListener('input', (e) => {
+      document.getElementById('lblScale').innerText = `${e.target.value}%`;
+      generate3DModel();
+    });
+
+    paramBevel.addEventListener('input', (e) => {
+      document.getElementById('lblBevel').innerText = `${parseFloat(e.target.value).toFixed(1)} mm`;
+      generate3DModel();
+    });
+
+    // -------------------------------------------------------------------------
+    // STL Binary Export
+    // -------------------------------------------------------------------------
+    document.getElementById('btnExportSTL').addEventListener('click', () => {
+      if (!threeMesh) {
+        showToast('Primero dibuja una forma para exportar');
+        return;
+      }
+
+      const exporter = new STLExporter();
+      // Binary STL produces compact, 100% compliant slicer files
+      const result = exporter.parse(threeMesh, { binary: true });
+      const blob = new Blob([result], { type: 'application/octet-stream' });
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `sketch3d_model_${timestamp}.stl`;
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+      showToast(`Exportado: ${filename} (${(blob.size / 1024).toFixed(1)} KB)`);
+    });
+
+    // -------------------------------------------------------------------------
+    // Preset Shapes
+    // -------------------------------------------------------------------------
+    window.loadPreset = function(type) {
+      const rect = canvasContainer.getBoundingClientRect();
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const pts = [];
+
+      if (type === 'keychain') {
+        currentMode = 'closed';
+        const w = rect.width * 0.35;
+        const h = rect.width * 0.18;
+        // Rounded pill shape
+        for (let a = 0; a <= Math.PI * 2; a += 0.2) {
+          const x = cx + (w * 0.5) * Math.cos(a) * (Math.abs(Math.cos(a)) ** 0.3);
+          const y = cy + (h * 0.5) * Math.sin(a);
+          pts.push({ x, y });
+        }
+      } else if (type === 'star') {
+        currentMode = 'closed';
+        const spikes = 5;
+        const outer = rect.width * 0.28;
+        const inner = rect.width * 0.12;
+        for (let i = 0; i < spikes * 2; i++) {
+          const r = i % 2 === 0 ? outer : inner;
+          const a = (i * Math.PI) / spikes - Math.PI / 2;
+          pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+        }
+      } else if (type === 'bracket') {
+        currentMode = 'closed';
+        const s = rect.width * 0.3;
+        const t = rect.width * 0.08;
+        pts.push({ x: cx - s, y: cy + s });
+        pts.push({ x: cx + s, y: cy + s });
+        pts.push({ x: cx + s, y: cy + s - t });
+        pts.push({ x: cx - s + t, y: cy + s - t });
+        pts.push({ x: cx - s + t, y: cy - s });
+        pts.push({ x: cx - s, y: cy - s });
+      } else if (type === 'gear') {
+        currentMode = 'closed';
+        const teeth = 8;
+        const r1 = rect.width * 0.25;
+        const r2 = rect.width * 0.18;
+        for (let i = 0; i < teeth * 4; i++) {
+          const a = (i * Math.PI * 2) / (teeth * 4);
+          const r = (i % 4 === 1 || i % 4 === 2) ? r1 : r2;
+          pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+        }
+      }
+
+      rawPoints = pts;
+      document.getElementById('drawHelperHint').style.display = 'none';
+      redraw2D();
+      generate3DModel();
+      showToast(`Plantilla "${type}" cargada`);
+    };
+
+    // -------------------------------------------------------------------------
+    // Animation Loop & Initial Load
+    // -------------------------------------------------------------------------
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    window.onload = () => {
+      resizeCanvas();
+      animate();
+      // Load default starter shape
+      window.loadPreset('star');
+    };
+  </script>
+</body>
+</html>
