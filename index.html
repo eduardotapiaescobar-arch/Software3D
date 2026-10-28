@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Sketch3D CAD Pro - Print Ready</title>
+  <title>Sketch3D CAD Pro - Vaciado y Cajas</title>
   <style>
     :root {
       --bg: #090d16;
@@ -12,6 +12,7 @@
       --border: #334155;
       --accent: #2563eb;
       --accent-light: #38bdf8;
+      --shell: #10b981;
       --danger: #ef4444;
       --hole: #f59e0b;
       --text: #f8fafc;
@@ -30,7 +31,6 @@
       overflow: hidden;
     }
 
-    /* HEADER */
     header {
       background: var(--panel);
       border-bottom: 1px solid var(--border);
@@ -58,10 +58,7 @@
       border: 1px solid #0284c7;
     }
 
-    .header-actions {
-      display: flex;
-      gap: 6px;
-    }
+    .header-actions { display: flex; gap: 6px; }
 
     .btn {
       background: var(--card);
@@ -80,7 +77,6 @@
     .btn.primary { background: var(--accent); border-color: var(--accent); }
     .btn.danger { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); color: #fca5a5; }
 
-    /* TABS 2D / 3D */
     .tab-bar {
       display: flex;
       background: #060911;
@@ -108,7 +104,6 @@
       border: 1px solid var(--border);
     }
 
-    /* WORKSPACE */
     .main-view {
       flex: 1;
       position: relative;
@@ -120,10 +115,9 @@
       flex-direction: column;
       height: 100%;
       overflow-y: auto;
-      padding-bottom: 20px;
+      padding-bottom: 24px;
     }
 
-    /* BARRA DE HERRAMIENTAS DE DIBUJO */
     .toolbar-scroll {
       display: flex;
       gap: 6px;
@@ -152,7 +146,6 @@
       color: #fff;
     }
 
-    /* CANVAS 2D */
     .canvas-container {
       display: flex;
       justify-content: center;
@@ -175,7 +168,7 @@
       bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.88);
       border: 1px solid var(--border);
       padding: 4px 10px;
       border-radius: 20px;
@@ -185,24 +178,22 @@
       white-space: nowrap;
     }
 
-    /* PANEL INSPECTOR DE PROPIEDADES */
     .inspector {
       background: var(--panel);
-      margin: 8px 12px;
-      padding: 12px;
+      margin: 6px 12px;
+      padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .inspector-title {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 700;
       color: var(--accent-light);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -216,24 +207,27 @@
 
     .prop-box {
       background: var(--card);
-      padding: 8px;
+      padding: 7px 8px;
       border-radius: 6px;
       border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
+    }
+
+    .prop-box.highlight-shell {
+      border-color: var(--shell);
+      background: rgba(16, 185, 129, 0.1);
     }
 
     .prop-label {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: var(--muted);
       display: flex;
       justify-content: space-between;
     }
 
-    .prop-label b {
-      color: var(--text);
-    }
+    .prop-label b { color: var(--text); }
 
     input[type="range"] {
       width: 100%;
@@ -241,21 +235,23 @@
       accent-color: var(--accent);
     }
 
+    /* Selector de 3 modos: Sólido, Ahuecar (Caja), Perforación */
     .mode-switch {
-      display: flex;
-      gap: 6px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 5px;
     }
 
     .mode-btn {
-      flex: 1;
-      padding: 7px;
+      padding: 7px 4px;
       border-radius: 6px;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--muted);
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 600;
       cursor: pointer;
+      text-align: center;
     }
 
     .mode-btn.solid.active {
@@ -264,18 +260,23 @@
       color: #fff;
     }
 
+    .mode-btn.shell.active {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: var(--shell);
+      color: #a7f3d0;
+    }
+
     .mode-btn.hole.active {
       background: rgba(245, 158, 11, 0.25);
       border-color: var(--hole);
       color: #fde68a;
     }
 
-    /* LISTA DE CAPAS / OBJETOS */
     .layers-bar {
       display: flex;
       gap: 6px;
       overflow-x: auto;
-      padding-bottom: 4px;
+      padding-bottom: 2px;
     }
 
     .layer-chip {
@@ -283,7 +284,7 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 20px;
-      font-size: 0.73rem;
+      font-size: 0.72rem;
       white-space: nowrap;
       cursor: pointer;
       display: flex;
@@ -297,7 +298,6 @@
       font-weight: 600;
     }
 
-    /* VISTA 3D */
     #view3D {
       display: none;
       width: 100%;
@@ -327,7 +327,7 @@
       border: 1px solid var(--border);
       padding: 8px 12px;
       border-radius: 8px;
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       line-height: 1.4;
       pointer-events: auto;
     }
@@ -340,7 +340,6 @@
     }
   </style>
 
-  <!-- Three.js y OrbitControls estables -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
@@ -349,7 +348,7 @@
   <header>
     <div class="brand">
       <span>⚙️ Sketch3D Pro</span>
-      <span class="badge">CAD / STL</span>
+      <span class="badge">Vaciado / Cajas</span>
     </div>
     <div class="header-actions">
       <button class="btn" id="btnSnap">🧲 Imán: ON</button>
@@ -365,66 +364,78 @@
   <div class="main-view">
     <!-- ==================== VISTA 2D ==================== -->
     <div id="view2D">
-      <!-- Barra de Herramientas -->
       <div class="toolbar-scroll">
-        <button class="tool-item active" data-tool="select">👆 Mover / Selec.</button>
-        <button class="tool-item" data-tool="nodes">🔧 Editar Nodos</button>
-        <button class="tool-item" data-tool="freehand">✏️ Trazo Libre</button>
-        <button class="tool-item" id="addRect">⬛ + Rectángulo</button>
-        <button class="tool-item" id="addCircle">⚪ + Círculo / Agujero</button>
-        <button class="tool-item" id="addHex">🛑 + Hexágono</button>
+        <button class="tool-item active" data-tool="select">👆 Mover</button>
+        <button class="tool-item" data-tool="nodes">🔧 Nodos</button>
+        <button class="tool-item" data-tool="freehand">✏️ Trazo</button>
+        <button class="tool-item" id="addBox">📦 + Cubo Hueco</button>
+        <button class="tool-item" id="addRect">⬛ + Bloque</button>
+        <button class="tool-item" id="addCircle">⚪ + Cilindro</button>
       </div>
 
-      <!-- Lienzo CAD -->
       <div class="canvas-container">
-        <canvas id="cadCanvas" width="330" height="330"></canvas>
-        <div class="canvas-hud" id="hudText">Cama: 220x220 mm | Cuadrícula: 10 mm</div>
+        <canvas id="cadCanvas" width="320" height="320"></canvas>
+        <div class="canvas-hud" id="hudText">Cama: 220x220 mm</div>
       </div>
 
-      <!-- Lista de Formas Creadas -->
+      <!-- Lista de Piezas -->
       <div class="inspector">
         <div class="inspector-title">
-          <span>Piezas en el Boceto</span>
+          <span>Piezas en Escena</span>
           <div style="display:flex; gap:6px;">
-            <button class="btn" id="btnDuplicate" style="padding:3px 8px; font-size:0.7rem;">📋 Duplicar</button>
+            <button class="btn" id="btnDuplicate" style="padding:3px 8px; font-size:0.7rem;">📋 Copiar</button>
             <button class="btn danger" id="btnDelete" style="padding:3px 8px; font-size:0.7rem;">🗑 Borrar</button>
           </div>
         </div>
         <div class="layers-bar" id="layersList"></div>
       </div>
 
-      <!-- Propiedades de la Forma Seleccionada -->
+      <!-- Inspector de Propiedades -->
       <div class="inspector" id="propPanel">
         <div class="inspector-title">
           <span id="selectedName">Propiedades de Pieza</span>
           <button class="btn" id="btnSmoothShape" style="padding:3px 8px; font-size:0.7rem;">✨ Suavizar</button>
         </div>
 
-        <!-- Modo Booleano: Sólido vs Agujero -->
+        <!-- 3 MODOS: Sólido, Ahuecar (Caja con fondo), Agujero/Rebaje -->
         <div class="mode-switch">
-          <button class="mode-btn solid active" id="btnSetSolid">➕ Sólido (Extruir)</button>
-          <button class="mode-btn hole" id="btnSetHole">➖ Agujero (Perforar)</button>
+          <button class="mode-btn solid" id="btnModeSolid">➕ Sólido</button>
+          <button class="mode-btn shell active" id="btnModeShell">📦 Ahuecar / Caja</button>
+          <button class="mode-btn hole" id="btnModeHole">➖ Agujero / Rebaje</button>
         </div>
 
+        <!-- Controles exclusivos de Ahuecado (Pared y Fondo) -->
+        <div class="row-grid" id="shellControls">
+          <div class="prop-box highlight-shell">
+            <div class="prop-label"><span>Grosor Pared</span><b id="lblWall">3.0 mm</b></div>
+            <input type="range" id="slWall" min="1" max="15" step="0.5" value="3">
+          </div>
+          <div class="prop-box highlight-shell">
+            <div class="prop-label"><span>Piso / Fondo</span><b id="lblBottom">2.5 mm</b></div>
+            <input type="range" id="slBottom" min="0" max="20" step="0.5" value="2.5">
+          </div>
+        </div>
+
+        <!-- Controles Generales -->
         <div class="row-grid">
           <div class="prop-box">
-            <div class="prop-label"><span>Altura Z</span><b id="lblHeight">10 mm</b></div>
-            <input type="range" id="slHeight" min="1" max="60" step="1" value="10">
+            <div class="prop-label"><span>Altura Total (Z)</span><b id="lblHeight">25 mm</b></div>
+            <input type="range" id="slHeight" min="1" max="80" step="1" value="25">
           </div>
 
           <div class="prop-box">
-            <div class="prop-label"><span>Escala / Tamaño</span><b id="lblScale">100%</b></div>
+            <div class="prop-label"><span>Elevación Piso (Z0)</span><b id="lblZ0">0 mm</b></div>
+            <input type="range" id="slZ0" min="0" max="50" step="1" value="0">
+          </div>
+
+          <div class="prop-box">
+            <div class="prop-label"><span>Tamaño / Escala</span><b id="lblScale">100%</b></div>
             <input type="range" id="slScale" min="20" max="250" step="5" value="100">
           </div>
 
           <div class="prop-box">
             <div class="prop-label"><span>Rotación 2D</span><b id="lblRot">0°</b></div>
             <input type="range" id="slRot" min="0" max="360" step="5" value="0">
-          </div>
-
-          <div class="prop-box">
-            <div class="prop-label"><span>Bisel Borde</span><b id="lblBevel">0.5 mm</b></div>
-            <input type="range" id="slBevel" min="0" max="3" step="0.2" value="0.5">
           </div>
         </div>
       </div>
@@ -433,10 +444,7 @@
     <!-- ==================== VISTA 3D ==================== -->
     <div id="view3D">
       <div class="floating-3d-ui">
-        <div class="metrics-pill" id="metrics3D">
-          Dimensiones totales:<br>
-          Calculando...
-        </div>
+        <div class="metrics-pill" id="metrics3D">Calculando...</div>
         <div class="cam-btns">
           <button class="btn" id="btnCamTop">⬇️ Planta</button>
           <button class="btn" id="btnCamIso">📐 Iso</button>
@@ -448,21 +456,16 @@
   </div>
 
   <script>
-    /* =========================================================
-       SISTEMA DE UNIDADES Y ESTADO CAD
-       Cama: 220 x 220 mm | Canvas: 330 x 330 px (1 mm = 1.5 px)
-       ========================================================= */
     const BED_MM = 220;
-    const CANVAS_PX = 330;
-    const PX_TO_MM = BED_MM / CANVAS_PX; // ~0.6667 mm por pixel
-    const MM_TO_PX = CANVAS_PX / BED_MM; // 1.5 px por mm
+    const CANVAS_PX = 320;
+    const PX_TO_MM = BED_MM / CANVAS_PX;
+    const MM_TO_PX = CANVAS_PX / BED_MM;
 
     let shapes = [];
     let selectedId = null;
-    let activeTool = 'select'; // 'select', 'nodes', 'freehand'
+    let activeTool = 'select';
     let snapEnabled = true;
 
-    // Interacción en Canvas
     let isDragging = false;
     let dragStart = { x: 0, y: 0 };
     let draggedNodeIdx = -1;
@@ -471,7 +474,6 @@
     const canvas = document.getElementById('cadCanvas');
     const ctx = canvas.getContext('2d');
 
-    // Utilidad para generar puntos de polígonos o círculos
     function createPolygonPts(cx, cy, radiusMm, sides) {
       const pts = [];
       const rPx = radiusMm * MM_TO_PX;
@@ -493,44 +495,44 @@
       ];
     }
 
-    // Agregar figura al estado
-    function addShape(name, points, isHole = false, height = 10) {
-      const id = 'shp_' + Date.now() + '_' + Math.floor(Math.random() * 100);
-      // Guardar puntos relativos al centroide para poder rotar y escalar fácil
-      const center = getCentroid(points);
-      const relPoints = points.map(p => ({ x: p.x - center.x, y: p.y - center.y }));
-
-      const newShape = {
-        id,
-        name,
-        cx: center.x,
-        cy: center.y,
-        relPoints,
-        isHole,
-        height,
-        scale: 1,
-        rotation: 0, // grados
-        bevel: 0.4
-      };
-      shapes.push(newShape);
-      selectShape(id);
-      render2D();
-    }
-
     function getCentroid(pts) {
       let sx = 0, sy = 0;
       pts.forEach(p => { sx += p.x; sy += p.y; });
       return { x: sx / pts.length, y: sy / pts.length };
     }
 
-    // Obtener los puntos absolutos en el canvas considerando posición, escala y rotación
-    function getWorldPoints(shp) {
+    // mode: 'solid' | 'shell' (ahuecado) | 'hole' (corte)
+    function addShape(name, points, mode = 'solid', height = 20, wall = 3, bottom = 2.5) {
+      const id = 'shp_' + Date.now() + '_' + Math.floor(Math.random() * 100);
+      const center = getCentroid(points);
+      const relPoints = points.map(p => ({ x: p.x - center.x, y: p.y - center.y }));
+
+      shapes.push({
+        id,
+        name,
+        cx: center.x,
+        cy: center.y,
+        relPoints,
+        mode,      // 'solid', 'shell', 'hole'
+        height,    // Altura total Z (mm)
+        z0: 0,     // Elevación desde la cama (mm)
+        wall,      // Grosor de pared en modo 'shell' (mm)
+        bottom,    // Espesor de piso en modo 'shell' (mm)
+        scale: 1,
+        rotation: 0
+      });
+      selectShape(id);
+      render2D();
+    }
+
+    function getWorldPoints(shp, customScaleMultiplier = 1) {
       const rad = (shp.rotation * Math.PI) / 180;
       const cos = Math.cos(rad);
       const sin = Math.sin(rad);
+      const sc = shp.scale * customScaleMultiplier;
       return shp.relPoints.map(p => {
-        const sx = p.x * shp.scale;
-        const sy = p.y * shp.scale;
+        const sx = p.x * sc;
+        const sy = p.y * sc;
         return {
           x: shp.cx + (sx * cos - sy * sin),
           y: shp.cy + (sx * sin + sy * cos)
@@ -538,7 +540,24 @@
       });
     }
 
-    // Convertir un punto absoluto a relativo de la pieza (para edición de nodos)
+    // Calcula el contorno interno contraído en milímetros exactos (para el vaciado de cajas)
+    function getInsetWorldPoints(shp, insetMm) {
+      const outerPts = getWorldPoints(shp);
+      const insetPx = insetMm * MM_TO_PX;
+      return outerPts.map(p => {
+        const dx = p.x - shp.cx;
+        const dy = p.y - shp.cy;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= insetPx + 1) return { x: shp.cx, y: shp.cy };
+        // Contracción proporcional en cada eje respecto al centroide
+        const ratio = Math.max(0.05, (dist - insetPx) / dist);
+        return {
+          x: shp.cx + dx * ratio,
+          y: shp.cy + dy * ratio
+        };
+      });
+    }
+
     function updateNodeFromWorld(shp, nodeIdx, worldX, worldY) {
       const rad = (-shp.rotation * Math.PI) / 180;
       const dx = worldX - shp.cx;
@@ -550,18 +569,17 @@
 
     function snapCoord(valPx) {
       if (!snapEnabled) return valPx;
-      const stepPx = 5 * MM_TO_PX; // Imán cada 5 mm
+      const stepPx = 5 * MM_TO_PX;
       const center = CANVAS_PX / 2;
       return center + Math.round((valPx - center) / stepPx) * stepPx;
     }
 
     /* =========================================================
-       RENDERIZADO 2D (CANVAS CAD)
+       RENDERIZADO 2D (MUESTRA PAREDES INTERNAS SI ESTÁ AHUECADO)
        ========================================================= */
     function render2D() {
       ctx.clearRect(0, 0, CANVAS_PX, CANVAS_PX);
 
-      // 1. Cuadrícula milimétrica (cada 10 mm = 15 px)
       const step10mm = 10 * MM_TO_PX;
       ctx.strokeStyle = '#1e293b';
       ctx.lineWidth = 1;
@@ -572,7 +590,6 @@
         ctx.stroke();
       }
 
-      // Ejes centrales X / Y
       const mid = CANVAS_PX / 2;
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1.5;
@@ -581,7 +598,6 @@
       ctx.moveTo(0, mid); ctx.lineTo(CANVAS_PX, mid);
       ctx.stroke();
 
-      // 2. Dibujar cada forma
       shapes.forEach(shp => {
         const pts = getWorldPoints(shp);
         if (pts.length < 2) return;
@@ -589,583 +605,13 @@
         const isSel = shp.id === selectedId;
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
-        for (let i = 1; i < pts.length; i++) {
-          ctx.lineTo(pts[i].x, pts[i].y);
-        }
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
         ctx.closePath();
 
-        if (shp.isHole) {
+        if (shp.mode === 'hole') {
           ctx.fillStyle = isSel ? 'rgba(245, 158, 11, 0.35)' : 'rgba(245, 158, 11, 0.15)';
           ctx.strokeStyle = isSel ? '#fbbf24' : '#d97706';
           ctx.setLineDash([5, 4]);
-        } else {
-          ctx.fillStyle = isSel ? 'rgba(56, 189, 248, 0.3)' : 'rgba(37, 99, 235, 0.18)';
-          ctx.strokeStyle = isSel ? '#38bdf8' : '#3b82f6';
-          ctx.setLineDash([]);
-        }
-
-        ctx.lineWidth = isSel ? 2.5 : 1.5;
-        ctx.fill();
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Centro y cotas de la figura seleccionada
-        if (isSel) {
-          // Punto de pivote central
-          ctx.fillStyle = '#38bdf8';
-          ctx.beginPath();
-          ctx.arc(shp.cx, shp.cy, 4, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Calcular Ancho y Alto en mm para mostrar cota en vivo
-          let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-          pts.forEach(p => {
-            if (p.x < minX) minX = p.x;
-            if (p.x > maxX) maxX = p.x;
-            if (p.y < minY) minY = p.y;
-            if (p.y > maxY) maxY = p.y;
-          });
-          const wMm = ((maxX - minX) * PX_TO_MM).toFixed(1);
-          const hMm = ((maxY - minY) * PX_TO_MM).toFixed(1);
-
-          document.getElementById('hudText').innerText = `${shp.name}: ${wMm} x ${hMm} mm | Z: ${shp.height} mm`;
-
-          // Si estamos en modo Editar Nodos, dibujar los vértices manipulables
-          if (activeTool === 'nodes') {
-            pts.forEach((p, idx) => {
-              ctx.fillStyle = idx === draggedNodeIdx ? '#ef4444' : '#ffffff';
-              ctx.strokeStyle = '#0f172a';
-              ctx.lineWidth = 2;
-              ctx.beginPath();
-              ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.stroke();
-            });
-          }
-        }
-      });
-
-      // 3. Dibujar trazo libre en curso
-      if (activeTool === 'freehand' && currentFreehandPts.length > 1) {
-        ctx.beginPath();
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 3;
-        ctx.moveTo(currentFreehandPts[0].x, currentFreehandPts[0].y);
-        for (let i = 1; i < currentFreehandPts.length; i++) {
-          ctx.lineTo(currentFreehandPts[i].x, currentFreehandPts[i].y);
-        }
-        ctx.stroke();
-      }
-    }
-
-    /* =========================================================
-       INTERACCIÓN TÁCTIL Y MOUSE EN CANVAS
-       ========================================================= */
-    function getPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      return { x: clientX - rect.left, y: clientY - rect.top };
-    }
-
-    // Algoritmo Ray-Casting para saber si se tocó dentro de un polígono
-    function pointInPoly(pt, poly) {
-      let inside = false;
-      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-        const xi = poly[i].x, yi = poly[i].y;
-        const xj = poly[j].x, yj = poly[j].y;
-        const intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
-        if (intersect) inside = !inside;
-      }
-      return inside;
-    }
-
-    function onDown(e) {
-      e.preventDefault();
-      const pos = getPos(e);
-
-      if (activeTool === 'freehand') {
-        isDragging = true;
-        currentFreehandPts = [pos];
-        render2D();
-        return;
-      }
-
-      const selShape = shapes.find(s => s.id === selectedId);
-
-      // Si estamos en modo Nodos, verificar si tocó un vértice
-      if (activeTool === 'nodes' && selShape) {
-        const pts = getWorldPoints(selShape);
-        for (let i = 0; i < pts.length; i++) {
-          if (Math.hypot(pos.x - pts[i].x, pos.y - pts[i].y) < 16) {
-            isDragging = true;
-            draggedNodeIdx = i;
-            render2D();
-            return;
-          }
-        }
-      }
-
-      // Modo Selección / Mover: buscar de arriba hacia abajo qué pieza fue tocada
-      for (let i = shapes.length - 1; i >= 0; i--) {
-        const shp = shapes[i];
-        const pts = getWorldPoints(shp);
-        if (pointInPoly(pos, pts)) {
-          selectShape(shp.id);
-          isDragging = true;
-          dragStart = { x: pos.x - shp.cx, y: pos.y - shp.cy };
-          render2D();
-          return;
-        }
-      }
-    }
-
-    function onMove(e) {
-      if (!isDragging) return;
-      e.preventDefault();
-      const pos = getPos(e);
-
-      if (activeTool === 'freehand') {
-        const last = currentFreehandPts[currentFreehandPts.length - 1];
-        if (Math.hypot(pos.x - last.x, pos.y - last.y) > 5) {
-          currentFreehandPts.push(pos);
-          render2D();
-        }
-        return;
-      }
-
-      const selShape = shapes.find(s => s.id === selectedId);
-      if (!selShape) return;
-
-      if (activeTool === 'nodes' && draggedNodeIdx !== -1) {
-        const sx = snapCoord(pos.x);
-        const sy = snapCoord(pos.y);
-        updateNodeFromWorld(selShape, draggedNodeIdx, sx, sy);
-        render2D();
-        return;
-      }
-
-      if (activeTool === 'select') {
-        selShape.cx = snapCoord(pos.x - dragStart.x);
-        selShape.cy = snapCoord(pos.y - dragStart.y);
-        render2D();
-      }
-    }
-
-    function onUp(e) {
-      if (!isDragging) return;
-      isDragging = false;
-      draggedNodeIdx = -1;
-
-      if (activeTool === 'freehand') {
-        if (currentFreehandPts.length > 3) {
-          addShape(`Trazo ${shapes.length + 1}`, currentFreehandPts, false, 8);
-          setTool('select');
-        }
-        currentFreehandPts = [];
-      }
-      render2D();
-    }
-
-    canvas.addEventListener('touchstart', onDown, { passive: false });
-    canvas.addEventListener('touchmove', onMove, { passive: false });
-    canvas.addEventListener('touchend', onUp, { passive: false });
-    canvas.addEventListener('mousedown', onDown);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-
-    /* =========================================================
-       UI DE CAPAS, HERRAMIENTAS E INSPECTOR
-       ========================================================= */
-    function setTool(toolName) {
-      activeTool = toolName;
-      document.querySelectorAll('.tool-item[data-tool]').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tool === toolName);
-      });
-      render2D();
-    }
-
-    document.querySelectorAll('.tool-item[data-tool]').forEach(btn => {
-      btn.addEventListener('click', () => setTool(btn.dataset.tool));
-    });
-
-    // Botones de agregar primitivas
-    const mid = CANVAS_PX / 2;
-    document.getElementById('addRect').addEventListener('click', () => {
-      addShape(`Placa ${shapes.length + 1}`, createRectPts(mid, mid, 60, 40), false, 8);
-      setTool('select');
-    });
-
-    document.getElementById('addCircle').addEventListener('click', () => {
-      // Por defecto crea un círculo ideal para agujero o cilindro
-      const isHoleDefault = shapes.length > 0;
-      addShape(isHoleDefault ? `Agujero ${shapes.length + 1}` : `Cilindro ${shapes.length + 1}`, createPolygonPts(mid, mid, 12, 28), isHoleDefault, 10);
-      setTool('select');
-    });
-
-    document.getElementById('addHex').addEventListener('click', () => {
-      addShape(`Hexágono ${shapes.length + 1}`, createPolygonPts(mid, mid, 20, 6), false, 12);
-      setTool('select');
-    });
-
-    // Selección y sincronización del Inspector
-    function selectShape(id) {
-      selectedId = id;
-      updateLayersUI();
-      const shp = shapes.find(s => s.id === id);
-      const panel = document.getElementById('propPanel');
-      if (!shp) {
-        panel.style.opacity = '0.4';
-        panel.style.pointerEvents = 'none';
-        return;
-      }
-      panel.style.opacity = '1';
-      panel.style.pointerEvents = 'auto';
-
-      document.getElementById('selectedName').innerText = shp.name;
-      document.getElementById('btnSetSolid').classList.toggle('active', !shp.isHole);
-      document.getElementById('btnSetHole').classList.toggle('active', shp.isHole);
-
-      document.getElementById('slHeight').value = shp.height;
-      document.getElementById('lblHeight').innerText = `${shp.height} mm`;
-
-      const scPct = Math.round(shp.scale * 100);
-      document.getElementById('slScale').value = scPct;
-      document.getElementById('lblScale').innerText = `${scPct}%`;
-
-      document.getElementById('slRot').value = shp.rotation;
-      document.getElementById('lblRot').innerText = `${shp.rotation}°`;
-
-      document.getElementById('slBevel').value = shp.bevel;
-      document.getElementById('lblBevel').innerText = `${shp.bevel} mm`;
-    }
-
-    function updateLayersUI() {
-      const container = document.getElementById('layersList');
-      container.innerHTML = '';
-      shapes.forEach(shp => {
-        const chip = document.createElement('div');
-        chip.className = `layer-chip ${shp.id === selectedId ? 'selected' : ''}`;
-        chip.innerHTML = `<span>${shp.isHole ? '➖' : '➕'}</span><span>${shp.name}</span>`;
-        chip.addEventListener('click', () => {
-          selectShape(shp.id);
-          render2D();
-        });
-        container.appendChild(chip);
-      });
-    }
-
-    // Eventos del Inspector
-    document.getElementById('btnSetSolid').addEventListener('click', () => {
-      const shp = shapes.find(s => s.id === selectedId);
-      if (shp) { shp.isHole = false; selectShape(shp.id); render2D(); }
-    });
-
-    document.getElementById('btnSetHole').addEventListener('click', () => {
-      const shp = shapes.find(s => s.id === selectedId);
-      if (shp) { shp.isHole = true; selectShape(shp.id); render2D(); }
-    });
-
-    document.getElementById('slHeight').addEventListener('input', e => {
-      const shp = shapes.find(s => s.id === selectedId);
-      if (shp) {
-        shp.height = parseFloat(e.target.value);
-        document.getElementById('lblHeight').innerText = `${shp.height} mm`;
-        render2D();
-      }
-    });
-
-    document.getElementById('slScale').addEventListener('input', e => {
-      const shp = shapes.find(s => s.id === selectedId);
-      if (shp) {
-        shp.scale = parseFloat(e.target.value) / 100;
-        document.getElementById('lblScale').innerText = `${e.target.value}%`;
-        render2D();
-      }
-    });
-
-    document.getElementById('slRot').addEventListener('input', e => {
-      const shp = shapes.find(s => s.id === selectedId);
-      if (shp) {
-        shp.rotation = parseFloat(e.target.value);
-        document.getElementById('lblRot').innerText = `${shp.rotation}°`;
-        render2D();
-      }
-    });
-
-    document.getElementById('slBevel').addEventListener('input', e => {
-      const shp = shapes.find(s => s.id === selectedId);
-      if (shp) {
-        shp.bevel = parseFloat(e.target.value);
-        document.getElementById('lblBevel').innerText = `${shp.bevel} mm`;
-      }
-    });
-
-    // Suavizado subdividiendo y promediando vértices (Algoritmo Chaikin)
-    document.getElementById('btnSmoothShape').addEventListener('click', () => {
-      const shp = shapes.find(s => s.id === selectedId);
-      if (!shp || shp.relPoints.length < 3 || shp.relPoints.length > 80) return;
-      const pts = shp.relPoints;
-      const next = [];
-      for (let i = 0; i < pts.length; i++) {
-        const p0 = pts[i];
-        const p1 = pts[(i + 1) % pts.length];
-        next.push({ x: 0.75 * p0.x + 0.25 * p1.x, y: 0.75 * p0.y + 0.25 * p1.y });
-        next.push({ x: 0.25 * p0.x + 0.75 * p1.x, y: 0.25 * p0.y + 0.75 * p1.y });
-      }
-      shp.relPoints = next;
-      render2D();
-    });
-
-    // Duplicar y Borrar
-    document.getElementById('btnDuplicate').addEventListener('click', () => {
-      const shp = shapes.find(s => s.id === selectedId);
-      if (!shp) return;
-      const copyPts = getWorldPoints(shp).map(p => ({ x: p.x + 15, y: p.y + 15 }));
-      addShape(shp.name + ' (Copia)', copyPts, shp.isHole, shp.height);
-    });
-
-    document.getElementById('btnDelete').addEventListener('click', () => {
-      if (!selectedId) return;
-      shapes = shapes.filter(s => s.id !== selectedId);
-      selectedId = shapes.length > 0 ? shapes[shapes.length - 1].id : null;
-      selectShape(selectedId);
-      render2D();
-    });
-
-    document.getElementById('btnSnap').addEventListener('click', e => {
-      snapEnabled = !snapEnabled;
-      e.target.innerText = `🧲 Imán: ${snapEnabled ? 'ON' : 'OFF'}`;
-    });
-
-    /* =========================================================
-       MOTOR 3D Y OPERACIONES BOOLEANAS DE PERFORACIÓN
-       ========================================================= */
-    const view2D = document.getElementById('view2D');
-    const view3D = document.getElementById('view3D');
-    const container3D = document.getElementById('viewportWebGL');
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x090d16);
-
-    const camera = new THREE.PerspectiveCamera(45, 1, 1, 1200);
-    camera.position.set(0, -190, 180);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container3D.appendChild(renderer.domElement);
-
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-
-    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
-    dirLight.position.set(100, -100, 200);
-    scene.add(dirLight);
-
-    const grid = new THREE.GridHelper(BED_MM, 22, 0x0284c7, 0x1e293b);
-    grid.rotation.x = Math.PI / 2;
-    scene.add(grid);
-
-    let meshGroup = new THREE.Group();
-    scene.add(meshGroup);
-    let isWireframe = false;
-
-    function build3DScene() {
-      // Limpiar grupo anterior
-      while (meshGroup.children.length > 0) {
-        const m = meshGroup.children[0];
-        m.geometry.dispose();
-        meshGroup.remove(m);
-      }
-
-      const solids = shapes.filter(s => !s.isHole);
-      const holes = shapes.filter(s => s.isHole);
-      const centerPx = CANVAS_PX / 2;
-
-      // Convertir puntos en píxeles a coordenadas en milímetros centradas en la cama
-      function toMMPoints(shp) {
-        return getWorldPoints(shp).map(p => new THREE.Vector2(
-          (p.x - centerPx) * PX_TO_MM,
-          -(p.y - centerPx) * PX_TO_MM
-        ));
-      }
-
-      solids.forEach(solid => {
-        const sPts = toMMPoints(solid);
-        if (sPts.length < 3) return;
-
-        const threeShape = new THREE.Shape(sPts);
-
-        // Perforar todos los agujeros cuyo centro caiga dentro de este sólido
-        holes.forEach(hole => {
-          if (pointInPoly({ x: hole.cx, y: hole.cy }, getWorldPoints(solid))) {
-            const hPts = toMMPoints(hole);
-            if (hPts.length >= 3) {
-              const holePath = new THREE.Path(hPts);
-              threeShape.holes.push(holePath);
-            }
-          }
-        });
-
-        const geom = new THREE.ExtrudeGeometry(threeShape, {
-          depth: solid.height,
-          bevelEnabled: solid.bevel > 0,
-          bevelThickness: solid.bevel,
-          bevelSize: solid.bevel,
-          bevelSegments: 2
-        });
-
-        // Alinear la base exactamente en Z = 0
-        geom.computeBoundingBox();
-        geom.translate(0, 0, -geom.boundingBox.min.z);
-
-        const mat = new THREE.MeshStandardMaterial({
-          color: solid.id === selectedId ? 0x38bdf8 : 0x2563eb,
-          roughness: 0.35,
-          metalness: 0.15,
-          wireframe: isWireframe
-        });
-
-        const mesh = new THREE.Mesh(geom, mat);
-        meshGroup.add(mesh);
-      });
-
-      // Calcular caja delimitadora total del conjunto
-      const box = new THREE.Box3().setFromObject(meshGroup);
-      if (!box.isEmpty()) {
-        const sx = (box.max.x - box.min.x).toFixed(1);
-        const sy = (box.max.y - box.min.y).toFixed(1);
-        const sz = (box.max.z - box.min.z).toFixed(1);
-        document.getElementById('metrics3D').innerHTML = `
-          <b>Volumen Total:</b><br>
-          X: ${sx} mm | Y: ${sy} mm | Z: ${sz} mm<br>
-          Piezas sólidas: ${solids.length} | Perforaciones: ${holes.length}
-        `;
-      } else {
-        document.getElementById('metrics3D').innerHTML = `Sin sólidos activos en escena.`;
-      }
-    }
-
-    // Controles de cámara 3D
-    document.getElementById('btnCamTop').addEventListener('click', () => {
-      camera.position.set(0, 0, 260);
-      controls.target.set(0, 0, 0);
-    });
-    document.getElementById('btnCamIso').addEventListener('click', () => {
-      camera.position.set(0, -190, 180);
-      controls.target.set(0, 0, 0);
-    });
-    document.getElementById('btnWireframe').addEventListener('click', () => {
-      isWireframe = !isWireframe;
-      build3DScene();
-    });
-
-    // Pestañas 2D / 3D
-    document.getElementById('tabDraw').addEventListener('click', () => {
-      document.getElementById('tabDraw').classList.add('active');
-      document.getElementById('tab3D').classList.remove('active');
-      view2D.style.display = 'flex';
-      view3D.style.display = 'none';
-    });
-
-    document.getElementById('tab3D').addEventListener('click', () => {
-      document.getElementById('tab3D').classList.add('active');
-      document.getElementById('tabDraw').classList.remove('active');
-      view2D.style.display = 'none';
-      view3D.style.display = 'block';
-
-      const w = view3D.clientWidth;
-      const h = view3D.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-
-      build3DScene();
-    });
-
-    /* =========================================================
-       EXPORTADOR STL BINARIO MULTI-PIEZA NATIVO
-       ========================================================= */
-    document.getElementById('btnExport').addEventListener('click', () => {
-      build3DScene();
-      if (meshGroup.children.length === 0) {
-        alert("Agrega al menos una figura sólida antes de exportar.");
-        return;
-      }
-
-      // Contar todos los triángulos de todas las piezas
-      let totalTriangles = 0;
-      const geometries = [];
-
-      meshGroup.children.forEach(mesh => {
-        const g = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
-        geometries.push(g);
-        totalTriangles += g.attributes.position.count / 3;
-      });
-
-      const bufferSize = 84 + (totalTriangles * 50);
-      const buffer = new ArrayBuffer(bufferSize);
-      const view = new DataView(buffer);
-
-      for (let i = 0; i < 80; i++) view.setUint8(i, 32);
-      view.setUint32(80, totalTriangles, true);
-
-      let offset = 84;
-      const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3();
-      const cb = new THREE.Vector3(), ab = new THREE.Vector3();
-
-      geometries.forEach(g => {
-        const pos = g.attributes.position;
-        for (let i = 0; i < pos.count; i += 3) {
-          vA.fromBufferAttribute(pos, i);
-          vB.fromBufferAttribute(pos, i + 1);
-          vC.fromBufferAttribute(pos, i + 2);
-
-          // Calcular normal real de la cara para el laminador
-          cb.subVectors(vC, vB);
-          ab.subVectors(vA, vB);
-          cb.cross(ab).normalize();
-
-          view.setFloat32(offset, cb.x, true);
-          view.setFloat32(offset + 4, cb.y, true);
-          view.setFloat32(offset + 8, cb.z, true);
-          offset += 12;
-
-          [vA, vB, vC].forEach(v => {
-            view.setFloat32(offset, v.x, true);
-            view.setFloat32(offset + 4, v.y, true);
-            view.setFloat32(offset + 8, v.z, true);
-            offset += 12;
-          });
-
-          view.setUint16(offset, 0, true);
-          offset += 2;
-        }
-      });
-
-      const blob = new Blob([buffer], { type: 'application/octet-stream' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `pieza_cad_${Date.now()}.stl`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-
-    // Loop de render 3D
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    }
-
-    // Inicializar con una brida / soporte mecánico de muestra (Placa + 2 perforaciones)
-    animate();
-    addShape('Placa Base', createRectPts(mid, mid, 80, 50), false, 8);
-    addShape('Agujero Izq', createPolygonPts(mid - 35, mid, 8, 24), true, 8);
-    addShape('Agujero Der', createPolygonPts(mid + 35, mid, 8, 24), true, 8);
-    selectShape(shapes[0].id);
-    render2D();
-  </script>
-</body>
-</html>
+        } else if (shp.mode === 'shell') {
+          ctx.fillStyle = isSel ? 'rgba(16, 185, 129, 0.28)' : 'rgba(16, 185, 129, 0.14)';
+          ctx.strokeStyle = isSel ? '#3
