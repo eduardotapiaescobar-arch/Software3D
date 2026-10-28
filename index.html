@@ -3,23 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Sketch3D CAD Pro - Vaciado y Cajas</title>
+  <title>Sketch3D Pro - CAD & Impresión 3D</title>
   <style>
     :root {
-      --bg: #090d16;
-      --panel: #111827;
+      --bg: #070b14;
+      --panel: #0f172a;
       --card: #1e293b;
       --border: #334155;
       --accent: #2563eb;
       --accent-light: #38bdf8;
-      --shell: #10b981;
-      --danger: #ef4444;
+      --deepen: #10b981;
       --hole: #f59e0b;
+      --danger: #ef4444;
       --text: #f8fafc;
       --muted: #94a3b8;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -28,318 +35,357 @@
       display: flex;
       flex-direction: column;
       height: 100dvh;
+      width: 100vw;
       overflow: hidden;
     }
 
+    /* BARRA SUPERIOR */
     header {
       background: var(--panel);
       border-bottom: 1px solid var(--border);
-      padding: 8px 12px;
+      padding: 8px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      height: 52px;
       flex-shrink: 0;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.95rem;
+      gap: 10px;
+      font-size: 1.05rem;
       font-weight: 700;
     }
 
     .badge {
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-light);
-      font-size: 0.65rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      border: 1px solid #0284c7;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 5px;
+      border: 1px solid #059669;
     }
 
-    .header-actions { display: flex; gap: 6px; }
-
-    .btn {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 7px 11px;
-      border-radius: 6px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .btn:active { opacity: 0.8; }
-    .btn.primary { background: var(--accent); border-color: var(--accent); }
-    .btn.danger { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); color: #fca5a5; }
-
-    .tab-bar {
+    .view-switcher {
       display: flex;
       background: #060911;
-      border-bottom: 1px solid var(--border);
-      padding: 5px;
-      gap: 5px;
-      flex-shrink: 0;
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      gap: 4px;
     }
 
     .tab-btn {
-      flex: 1;
-      padding: 8px;
+      padding: 6px 16px;
       background: transparent;
       color: var(--muted);
       border: none;
       border-radius: 6px;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
     }
 
     .tab-btn.active {
-      background: var(--card);
-      color: var(--accent-light);
-      border: 1px solid var(--border);
+      background: var(--accent);
+      color: #fff;
     }
 
-    .main-view {
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn.primary { background: var(--accent); border-color: var(--accent-light); }
+    .btn.danger { background: rgba(239, 68, 68, 0.18); border-color: var(--danger); color: #fca5a5; }
+
+    /* LAYOUT PRINCIPAL DE ESTUDIO (Lado a Lado en iPad / Desktop) */
+    .studio-workspace {
+      display: flex;
       flex: 1;
+      height: calc(100dvh - 52px);
+      overflow: hidden;
+    }
+
+    /* ZONA IZQUIERDA: LIENZO GIGANTE 2D / 3D */
+    .stage-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #050811;
       position: relative;
       overflow: hidden;
     }
 
-    #view2D {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow-y: auto;
-      padding-bottom: 24px;
-    }
-
-    .toolbar-scroll {
+    .toolbar-top {
       display: flex;
       gap: 6px;
       padding: 8px 12px;
-      background: var(--panel);
+      background: rgba(15, 23, 42, 0.9);
       border-bottom: 1px solid var(--border);
       overflow-x: auto;
       flex-shrink: 0;
+      align-items: center;
     }
 
-    .tool-item {
-      padding: 7px 10px;
+    .tool-btn {
+      padding: 8px 12px;
       background: var(--card);
       border: 1px solid var(--border);
       color: var(--text);
       border-radius: 6px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
     }
 
-    .tool-item.active {
+    .tool-btn.active {
       background: var(--accent);
       border-color: var(--accent-light);
       color: #fff;
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
     }
 
-    .canvas-container {
+    .divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    /* Contenedor que se adapta al máximo tamaño disponible */
+    .canvas-viewport {
+      flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 10px;
+      padding: 12px;
       position: relative;
-      background: #070a12;
+      overflow: hidden;
     }
 
     canvas#cadCanvas {
-      background: #0f172a;
+      background: #0b1324;
       border-radius: 8px;
-      border: 2px solid var(--border);
-      touch-action: none;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      border: 2px solid #334155;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+      touch-action: none; /* Vital para dibujar en iPad/iPhone */
     }
 
-    .canvas-hud {
+    .hud-pill {
       position: absolute;
-      bottom: 16px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.88);
+      background: rgba(15, 23, 42, 0.92);
       border: 1px solid var(--border);
-      padding: 4px 10px;
+      padding: 6px 14px;
       border-radius: 20px;
-      font-size: 0.7rem;
-      color: var(--muted);
+      font-size: 0.78rem;
+      color: var(--accent-light);
+      font-weight: 600;
       pointer-events: none;
-      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
 
-    .inspector {
-      background: var(--panel);
-      margin: 6px 12px;
-      padding: 10px 12px;
-      border-radius: 8px;
+    /* Contenedor 3D sobre el mismo Stage */
+    #stage3D {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #060a12;
+      z-index: 5;
+    }
+
+    #webglContainer {
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .overlay-3d-controls {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .info-box-3d {
+      background: rgba(15, 23, 42, 0.9);
       border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      pointer-events: auto;
+    }
+
+    /* ZONA DERECHA: PANEL INSPECTOR DE PROPIEDADES */
+    .sidebar-inspector {
+      width: 360px;
+      background: var(--panel);
+      border-left: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      overflow-y: auto;
+      padding: 12px;
+      gap: 14px;
+      flex-shrink: 0;
     }
 
-    .inspector-title {
+    .section-card {
+      background: #131d31;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section-header {
       font-size: 0.76rem;
       font-weight: 700;
       color: var(--accent-light);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .row-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+    /* Lista de piezas */
+    .shapes-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 110px;
+      overflow-y: auto;
     }
 
-    .prop-box {
+    .shape-item {
+      padding: 6px 10px;
       background: var(--card);
-      padding: 7px 8px;
-      border-radius: 6px;
       border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
       display: flex;
-      flex-direction: column;
-      gap: 3px;
+      align-items: center;
+      gap: 6px;
     }
 
-    .prop-box.highlight-shell {
-      border-color: var(--shell);
-      background: rgba(16, 185, 129, 0.1);
+    .shape-item.selected {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: var(--accent-light);
+      color: #fff;
+      font-weight: 600;
     }
 
-    .prop-label {
-      font-size: 0.7rem;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .prop-label b { color: var(--text); }
-
-    input[type="range"] {
-      width: 100%;
-      height: 20px;
-      accent-color: var(--accent);
-    }
-
-    /* Selector de 3 modos: Sólido, Ahuecar (Caja), Perforación */
-    .mode-switch {
+    /* Selector de Modo: Sólido | Profundizar | Agujero */
+    .mode-selector {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 5px;
+      gap: 6px;
     }
 
-    .mode-btn {
-      padding: 7px 4px;
+    .mode-pill {
+      padding: 8px 4px;
       border-radius: 6px;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--muted);
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 600;
-      cursor: pointer;
       text-align: center;
+      cursor: pointer;
     }
 
-    .mode-btn.solid.active {
+    .mode-pill.solid.active {
       background: rgba(37, 99, 235, 0.25);
       border-color: var(--accent-light);
       color: #fff;
     }
 
-    .mode-btn.shell.active {
+    .mode-pill.deepen.active {
       background: rgba(16, 185, 129, 0.25);
-      border-color: var(--shell);
-      color: #a7f3d0;
+      border-color: var(--deepen);
+      color: #6ee7b7;
     }
 
-    .mode-btn.hole.active {
+    .mode-pill.hole.active {
       background: rgba(245, 158, 11, 0.25);
       border-color: var(--hole);
       color: #fde68a;
     }
 
-    .layers-bar {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 2px;
-    }
-
-    .layer-chip {
-      padding: 5px 10px;
+    /* Sliders */
+    .control-group {
       background: var(--card);
+      padding: 8px 10px;
+      border-radius: 6px;
       border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 0.72rem;
-      white-space: nowrap;
-      cursor: pointer;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 5px;
     }
 
-    .layer-chip.selected {
-      border-color: var(--accent-light);
-      background: rgba(56, 189, 248, 0.15);
-      font-weight: 600;
+    .control-group.highlight-deepen {
+      border-color: #059669;
+      background: rgba(16, 185, 129, 0.08);
     }
 
-    #view3D {
-      display: none;
-      width: 100%;
-      height: 100%;
-      position: relative;
-    }
-
-    #viewportWebGL {
-      width: 100%;
-      height: 100%;
-      touch-action: none;
-    }
-
-    .floating-3d-ui {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
+    .control-label {
       display: flex;
       justify-content: space-between;
-      pointer-events: none;
-      z-index: 10;
+      font-size: 0.76rem;
+      color: var(--muted);
     }
 
-    .metrics-pill {
-      background: rgba(15, 23, 42, 0.88);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 0.74rem;
-      line-height: 1.4;
-      pointer-events: auto;
+    .control-label b {
+      color: var(--text);
+      font-size: 0.8rem;
     }
 
-    .cam-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      pointer-events: auto;
+    input[type="range"] {
+      width: 100%;
+      height: 22px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Adaptación si se gira el iPad en vertical o en móvil */
+    @media (max-width: 820px) {
+      .studio-workspace { flex-direction: column; }
+      .sidebar-inspector { width: 100%; height: 42%; border-left: none; border-top: 1px solid var(--border); }
+      .stage-area { height: 58%; }
     }
   </style>
 
+  <!-- Three.js cargado de forma segura -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
@@ -348,191 +394,240 @@
   <header>
     <div class="brand">
       <span>⚙️ Sketch3D Pro</span>
-      <span class="badge">Vaciado / Cajas</span>
+      <span class="badge">Profundizado & CAD</span>
     </div>
+
+    <div class="view-switcher">
+      <button class="tab-btn active" id="btnTab2D">📐 1. Mesa de Dibujo 2D</button>
+      <button class="tab-btn" id="btnTab3D">🧊 2. Vista 3D Interactiva</button>
+    </div>
+
     <div class="header-actions">
-      <button class="btn" id="btnSnap">🧲 Imán: ON</button>
-      <button class="btn primary" id="btnExport">📥 STL</button>
+      <button class="btn" id="btnToggleSnap">🧲 Imán: ON</button>
+      <button class="btn primary" id="btnDownloadSTL">📥 Descargar STL</button>
     </div>
   </header>
 
-  <div class="tab-bar">
-    <button class="tab-btn active" id="tabDraw">📐 1. Boceto 2D y Piezas</button>
-    <button class="tab-btn" id="tab3D">🧊 2. Modelo 3D Interactivo</button>
-  </div>
-
-  <div class="main-view">
-    <!-- ==================== VISTA 2D ==================== -->
-    <div id="view2D">
-      <div class="toolbar-scroll">
-        <button class="tool-item active" data-tool="select">👆 Mover</button>
-        <button class="tool-item" data-tool="nodes">🔧 Nodos</button>
-        <button class="tool-item" data-tool="freehand">✏️ Trazo</button>
-        <button class="tool-item" id="addBox">📦 + Cubo Hueco</button>
-        <button class="tool-item" id="addRect">⬛ + Bloque</button>
-        <button class="tool-item" id="addCircle">⚪ + Cilindro</button>
+  <div class="studio-workspace">
+    <!-- ==================== ÁREA DE TRABAJO GRANDE (IZQUIERDA) ==================== -->
+    <div class="stage-area">
+      <!-- Barra de herramientas de dibujo y figuras -->
+      <div class="toolbar-top" id="toolbar2D">
+        <button class="tool-btn active" data-tool="move">👆 Seleccionar / Mover</button>
+        <button class="tool-btn" data-tool="nodes">🔧 Nodos (Deformar)</button>
+        <button class="tool-btn" data-tool="draw">✏️ Dibujar Trazo</button>
+        <div class="divider"></div>
+        <button class="tool-btn" id="btnAddBox">📦 + Caja Profundizada</button>
+        <button class="tool-btn" id="btnAddRect">⬛ + Bloque</button>
+        <button class="tool-btn" id="btnAddCircle">⚪ + Cilindro</button>
+        <button class="tool-btn" id="btnAddHex">🛑 + Hexágono</button>
       </div>
 
-      <div class="canvas-container">
-        <canvas id="cadCanvas" width="320" height="320"></canvas>
-        <div class="canvas-hud" id="hudText">Cama: 220x220 mm</div>
+      <!-- Lienzo 2D auto-ajustable -->
+      <div class="canvas-viewport" id="viewport2D">
+        <canvas id="cadCanvas" width="560" height="560"></canvas>
+        <div class="hud-pill" id="hudCoords">Cama: 220 x 220 mm | Toca una pieza para moverla</div>
       </div>
 
-      <!-- Lista de Piezas -->
-      <div class="inspector">
-        <div class="inspector-title">
-          <span>Piezas en Escena</span>
-          <div style="display:flex; gap:6px;">
-            <button class="btn" id="btnDuplicate" style="padding:3px 8px; font-size:0.7rem;">📋 Copiar</button>
-            <button class="btn danger" id="btnDelete" style="padding:3px 8px; font-size:0.7rem;">🗑 Borrar</button>
+      <!-- Escenario 3D superpuesto cuando se activa la pestaña 3D -->
+      <div id="stage3D">
+        <div class="overlay-3d-controls">
+          <div class="info-box-3d" id="infoBox3D">
+            <b>Modelo 3D Listo</b><br>
+            Gira con 1 dedo | Zoom con 2 dedos
+          </div>
+          <div style="display:flex; gap:6px; pointer-events:auto; height: fit-content;">
+            <button class="btn" id="btnViewTop">⬇️ Planta</button>
+            <button class="btn" id="btnViewIso">📐 Iso</button>
+            <button class="btn" id="btnViewWire">🕸 Malla</button>
           </div>
         </div>
-        <div class="layers-bar" id="layersList"></div>
-      </div>
-
-      <!-- Inspector de Propiedades -->
-      <div class="inspector" id="propPanel">
-        <div class="inspector-title">
-          <span id="selectedName">Propiedades de Pieza</span>
-          <button class="btn" id="btnSmoothShape" style="padding:3px 8px; font-size:0.7rem;">✨ Suavizar</button>
-        </div>
-
-        <!-- 3 MODOS: Sólido, Ahuecar (Caja con fondo), Agujero/Rebaje -->
-        <div class="mode-switch">
-          <button class="mode-btn solid" id="btnModeSolid">➕ Sólido</button>
-          <button class="mode-btn shell active" id="btnModeShell">📦 Ahuecar / Caja</button>
-          <button class="mode-btn hole" id="btnModeHole">➖ Agujero / Rebaje</button>
-        </div>
-
-        <!-- Controles exclusivos de Ahuecado (Pared y Fondo) -->
-        <div class="row-grid" id="shellControls">
-          <div class="prop-box highlight-shell">
-            <div class="prop-label"><span>Grosor Pared</span><b id="lblWall">3.0 mm</b></div>
-            <input type="range" id="slWall" min="1" max="15" step="0.5" value="3">
-          </div>
-          <div class="prop-box highlight-shell">
-            <div class="prop-label"><span>Piso / Fondo</span><b id="lblBottom">2.5 mm</b></div>
-            <input type="range" id="slBottom" min="0" max="20" step="0.5" value="2.5">
-          </div>
-        </div>
-
-        <!-- Controles Generales -->
-        <div class="row-grid">
-          <div class="prop-box">
-            <div class="prop-label"><span>Altura Total (Z)</span><b id="lblHeight">25 mm</b></div>
-            <input type="range" id="slHeight" min="1" max="80" step="1" value="25">
-          </div>
-
-          <div class="prop-box">
-            <div class="prop-label"><span>Elevación Piso (Z0)</span><b id="lblZ0">0 mm</b></div>
-            <input type="range" id="slZ0" min="0" max="50" step="1" value="0">
-          </div>
-
-          <div class="prop-box">
-            <div class="prop-label"><span>Tamaño / Escala</span><b id="lblScale">100%</b></div>
-            <input type="range" id="slScale" min="20" max="250" step="5" value="100">
-          </div>
-
-          <div class="prop-box">
-            <div class="prop-label"><span>Rotación 2D</span><b id="lblRot">0°</b></div>
-            <input type="range" id="slRot" min="0" max="360" step="5" value="0">
-          </div>
-        </div>
+        <div id="webglContainer"></div>
       </div>
     </div>
 
-    <!-- ==================== VISTA 3D ==================== -->
-    <div id="view3D">
-      <div class="floating-3d-ui">
-        <div class="metrics-pill" id="metrics3D">Calculando...</div>
-        <div class="cam-btns">
-          <button class="btn" id="btnCamTop">⬇️ Planta</button>
-          <button class="btn" id="btnCamIso">📐 Iso</button>
-          <button class="btn" id="btnWireframe">🕸 Malla</button>
+    <!-- ==================== PANEL INSPECTOR (DERECHA) ==================== -->
+    <div class="sidebar-inspector">
+      <!-- Lista de Piezas en Escena -->
+      <div class="section-card">
+        <div class="section-header">
+          <span>Piezas en Escena</span>
+          <div style="display:flex; gap:6px;">
+            <button class="btn" id="btnCopyShape" style="padding:4px 8px; font-size:0.72rem;">📋 Copiar</button>
+            <button class="btn danger" id="btnDelShape" style="padding:4px 8px; font-size:0.72rem;">🗑 Borrar</button>
+          </div>
+        </div>
+        <div class="shapes-list" id="shapesListContainer"></div>
+      </div>
+
+      <!-- Propiedades de la Pieza Seleccionada -->
+      <div class="section-card" id="inspectorProps">
+        <div class="section-header">
+          <span id="lblSelectedTitle">Propiedades de Pieza</span>
+          <button class="btn" id="btnSmoothPts" style="padding:4px 8px; font-size:0.72rem;">✨ Suavizar</button>
+        </div>
+
+        <!-- MODO: SÓLIDO | PROFUNDIZAR | PERFORAR -->
+        <div class="mode-selector">
+          <div class="mode-pill solid active" data-mode="solid">➕ Sólido</div>
+          <div class="mode-pill deepen" data-mode="deepen">📐 Profundizar</div>
+          <div class="mode-pill hole" data-mode="hole">➖ Perforar</div>
+        </div>
+
+        <!-- Opciones exclusivas de PROFUNDIZAR (Grosor de Pared y Piso) -->
+        <div id="deepenControls" style="display:none; flex-direction:column; gap:8px;">
+          <div class="control-group highlight-deepen">
+            <div class="control-label">
+              <span>Grosor de Pared</span>
+              <b id="valWall">3.0 mm</b>
+            </div>
+            <input type="range" id="slWall" min="1.2" max="15" step="0.4" value="3.0">
+          </div>
+
+          <div class="control-group highlight-deepen">
+            <div class="control-label">
+              <span>Espesor de Fondo / Piso (Profundidad)</span>
+              <b id="valFloor">2.5 mm</b>
+            </div>
+            <input type="range" id="slFloor" min="0" max="20" step="0.5" value="2.5">
+          </div>
+        </div>
+
+        <!-- Opciones Generales de Dimensión -->
+        <div class="control-group">
+          <div class="control-label">
+            <span>Altura Total (Z)</span>
+            <b id="valHeight">20 mm</b>
+          </div>
+          <input type="range" id="slHeight" min="1" max="100" step="1" value="20">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Elevación Desde la Cama (Z0)</span>
+            <b id="valZ0">0 mm</b>
+          </div>
+          <input type="range" id="slZ0" min="0" max="50" step="1" value="0">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Tamaño / Escala 2D</span>
+            <b id="valScale">100%</b>
+          </div>
+          <input type="range" id="slScale" min="20" max="250" step="5" value="100">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Rotación 2D</span>
+            <b id="valRot">0°</b>
+          </div>
+          <input type="range" id="slRot" min="0" max="360" step="5" value="0">
         </div>
       </div>
-      <div id="viewportWebGL"></div>
     </div>
   </div>
 
   <script>
-    const BED_MM = 220;
-    const CANVAS_PX = 320;
-    const PX_TO_MM = BED_MM / CANVAS_PX;
-    const MM_TO_PX = CANVAS_PX / BED_MM;
-
-    let shapes = [];
-    let selectedId = null;
-    let activeTool = 'select';
-    let snapEnabled = true;
-
-    let isDragging = false;
-    let dragStart = { x: 0, y: 0 };
-    let draggedNodeIdx = -1;
-    let currentFreehandPts = [];
+    /* =========================================================================
+       1. NÚCLEO 2D INDEPENDIENTE (Arranca de inmediato y se adapta a la pantalla)
+       ========================================================================= */
+    const BED_MM = 220; // Cama de impresión 220 x 220 mm
+    let canvasSizePx = 560;
+    let pxPerMm = canvasSizePx / BED_MM;
+    let mmPerPx = BED_MM / canvasSizePx;
 
     const canvas = document.getElementById('cadCanvas');
     const ctx = canvas.getContext('2d');
+    const viewport2D = document.getElementById('viewport2D');
 
-    function createPolygonPts(cx, cy, radiusMm, sides) {
+    let shapes = [];
+    let selectedId = null;
+    let currentTool = 'move'; // 'move', 'nodes', 'draw'
+    let snapToGrid = true;
+
+    // Variables de interacción táctil / mouse
+    let isPointerDown = false;
+    let dragOffset = { x: 0, y: 0 };
+    let activeNodeIndex = -1;
+    let freehandBuffer = [];
+
+    // Ajustar el tamaño del lienzo para aprovechar todo el espacio disponible en el iPad
+    function fitCanvasToScreen() {
+      const rect = viewport2D.getBoundingClientRect();
+      if (rect.width < 50 || rect.height < 50) return;
+      const available = Math.min(rect.width - 24, rect.height - 24);
+      const newSize = Math.max(320, Math.floor(available));
+
+      // Re-escalar coordenadas si el canvas cambia de resolución
+      const ratio = newSize / canvasSizePx;
+      shapes.forEach(s => {
+        s.cx *= ratio;
+        s.cy *= ratio;
+        s.pts.forEach(p => { p.x *= ratio; p.y *= ratio; });
+      });
+
+      canvasSizePx = newSize;
+      canvas.width = canvasSizePx;
+      canvas.height = canvasSizePx;
+      pxPerMm = canvasSizePx / BED_MM;
+      mmPerPx = BED_MM / canvasSizePx;
+      draw2DScene();
+    }
+
+    window.addEventListener('resize', fitCanvasToScreen);
+
+    // Crear primitivas en milímetros
+    function makeRectPoints(wMm, hMm) {
+      const hw = (wMm * pxPerMm) / 2;
+      const hh = (hMm * pxPerMm) / 2;
+      return [
+        { x: -hw, y: -hh },
+        { x:  hw, y: -hh },
+        { x:  hw, y:  hh },
+        { x: -hw, y:  hh }
+      ];
+    }
+
+    function makePolygonPoints(radiusMm, sides) {
       const pts = [];
-      const rPx = radiusMm * MM_TO_PX;
+      const r = radiusMm * pxPerMm;
       for (let i = 0; i < sides; i++) {
         const a = (i / sides) * Math.PI * 2;
-        pts.push({ x: cx + Math.cos(a) * rPx, y: cy + Math.sin(a) * rPx });
+        pts.push({ x: Math.cos(a) * r, y: Math.sin(a) * r });
       }
       return pts;
     }
 
-    function createRectPts(cx, cy, wMm, hMm) {
-      const w = (wMm * MM_TO_PX) / 2;
-      const h = (hMm * MM_TO_PX) / 2;
-      return [
-        { x: cx - w, y: cy - h },
-        { x: cx + w, y: cy - h },
-        { x: cx + w, y: cy + h },
-        { x: cx - w, y: cy + h }
-      ];
-    }
-
-    function getCentroid(pts) {
-      let sx = 0, sy = 0;
-      pts.forEach(p => { sx += p.x; sy += p.y; });
-      return { x: sx / pts.length, y: sy / pts.length };
-    }
-
-    // mode: 'solid' | 'shell' (ahuecado) | 'hole' (corte)
-    function addShape(name, points, mode = 'solid', height = 20, wall = 3, bottom = 2.5) {
-      const id = 'shp_' + Date.now() + '_' + Math.floor(Math.random() * 100);
-      const center = getCentroid(points);
-      const relPoints = points.map(p => ({ x: p.x - center.x, y: p.y - center.y }));
-
+    function addNewShape({ name, cx, cy, pts, mode = 'solid', height = 20, wall = 3.0, floor = 2.5, z0 = 0 }) {
+      const id = 'pieza_' + Date.now() + '_' + Math.floor(Math.random() * 999);
       shapes.push({
         id,
         name,
-        cx: center.x,
-        cy: center.y,
-        relPoints,
-        mode,      // 'solid', 'shell', 'hole'
-        height,    // Altura total Z (mm)
-        z0: 0,     // Elevación desde la cama (mm)
-        wall,      // Grosor de pared en modo 'shell' (mm)
-        bottom,    // Espesor de piso en modo 'shell' (mm)
+        cx: cx !== undefined ? cx : canvasSizePx / 2,
+        cy: cy !== undefined ? cy : canvasSizePx / 2,
+        pts, // Puntos relativos al centro (cx, cy)
+        mode, // 'solid', 'deepen', 'hole'
+        height,
+        wall,
+        floor,
+        z0,
         scale: 1,
-        rotation: 0
+        rot: 0
       });
-      selectShape(id);
-      render2D();
+      selectShapeById(id);
+      draw2DScene();
     }
 
-    function getWorldPoints(shp, customScaleMultiplier = 1) {
-      const rad = (shp.rotation * Math.PI) / 180;
+    // Obtener vértices absolutos en pantalla
+    function getAbsoluteVertices(shp) {
+      const rad = (shp.rot * Math.PI) / 180;
       const cos = Math.cos(rad);
       const sin = Math.sin(rad);
-      const sc = shp.scale * customScaleMultiplier;
-      return shp.relPoints.map(p => {
-        const sx = p.x * sc;
-        const sy = p.y * sc;
+      return shp.pts.map(p => {
+        const sx = p.x * shp.scale;
+        const sy = p.y * shp.scale;
         return {
           x: shp.cx + (sx * cos - sy * sin),
           y: shp.cy + (sx * sin + sy * cos)
@@ -540,78 +635,761 @@
       });
     }
 
-    // Calcula el contorno interno contraído en milímetros exactos (para el vaciado de cajas)
-    function getInsetWorldPoints(shp, insetMm) {
-      const outerPts = getWorldPoints(shp);
-      const insetPx = insetMm * MM_TO_PX;
-      return outerPts.map(p => {
+    // Obtener vértices internos reducidos cuando el modo es "Profundizar" (Grosor de pared)
+    function getOffsetInnerVertices(shp, wallMm) {
+      const absPts = getAbsoluteVertices(shp);
+      const wallPx = wallMm * pxPerMm;
+      return absPts.map(p => {
         const dx = p.x - shp.cx;
         const dy = p.y - shp.cy;
         const dist = Math.hypot(dx, dy);
-        if (dist <= insetPx + 1) return { x: shp.cx, y: shp.cy };
-        // Contracción proporcional en cada eje respecto al centroide
-        const ratio = Math.max(0.05, (dist - insetPx) / dist);
+        if (dist <= wallPx + 2) return { x: shp.cx, y: shp.cy };
+        const factor = (dist - wallPx) / dist;
         return {
-          x: shp.cx + dx * ratio,
-          y: shp.cy + dy * ratio
+          x: shp.cx + dx * factor,
+          y: shp.cy + dy * factor
         };
       });
     }
 
-    function updateNodeFromWorld(shp, nodeIdx, worldX, worldY) {
-      const rad = (-shp.rotation * Math.PI) / 180;
-      const dx = worldX - shp.cx;
-      const dy = worldY - shp.cy;
-      const rx = (dx * Math.cos(rad) - dy * Math.sin(rad)) / shp.scale;
-      const ry = (dx * Math.sin(rad) + dy * Math.cos(rad)) / shp.scale;
-      shp.relPoints[nodeIdx] = { x: rx, y: ry };
+    function snapPx(val) {
+      if (!snapToGrid) return val;
+      const step = 5 * pxPerMm; // Imán cada 5 mm
+      const center = canvasSizePx / 2;
+      return center + Math.round((val - center) / step) * step;
     }
 
-    function snapCoord(valPx) {
-      if (!snapEnabled) return valPx;
-      const stepPx = 5 * MM_TO_PX;
-      const center = CANVAS_PX / 2;
-      return center + Math.round((valPx - center) / stepPx) * stepPx;
-    }
+    // Dibujar cuadrícula y piezas en el Canvas 2D
+    function draw2DScene() {
+      ctx.clearRect(0, 0, canvasSizePx, canvasSizePx);
 
-    /* =========================================================
-       RENDERIZADO 2D (MUESTRA PAREDES INTERNAS SI ESTÁ AHUECADO)
-       ========================================================= */
-    function render2D() {
-      ctx.clearRect(0, 0, CANVAS_PX, CANVAS_PX);
-
-      const step10mm = 10 * MM_TO_PX;
-      ctx.strokeStyle = '#1e293b';
+      // 1. Cuadrícula secundaria cada 10 mm
+      const step10 = 10 * pxPerMm;
+      ctx.strokeStyle = '#162238';
       ctx.lineWidth = 1;
-      for (let i = 0; i <= CANVAS_PX; i += step10mm) {
+      for (let i = 0; i <= canvasSizePx; i += step10) {
         ctx.beginPath();
-        ctx.moveTo(i, 0); ctx.lineTo(i, CANVAS_PX);
-        ctx.moveTo(0, i); ctx.lineTo(CANVAS_PX, i);
+        ctx.moveTo(i, 0); ctx.lineTo(i, canvasSizePx);
+        ctx.moveTo(0, i); ctx.lineTo(canvasSizePx, i);
         ctx.stroke();
       }
 
-      const mid = CANVAS_PX / 2;
-      ctx.strokeStyle = '#334155';
+      // 2. Ejes centrales de la cama
+      const mid = canvasSizePx / 2;
+      ctx.strokeStyle = '#293d5c';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(mid, 0); ctx.lineTo(mid, CANVAS_PX);
-      ctx.moveTo(0, mid); ctx.lineTo(CANVAS_PX, mid);
+      ctx.moveTo(mid, 0); ctx.lineTo(mid, canvasSizePx);
+      ctx.moveTo(0, mid); ctx.lineTo(canvasSizePx, mid);
       ctx.stroke();
 
+      // 3. Dibujar todas las piezas
       shapes.forEach(shp => {
-        const pts = getWorldPoints(shp);
-        if (pts.length < 2) return;
+        const verts = getAbsoluteVertices(shp);
+        if (verts.length < 3) return;
+        const isSelected = shp.id === selectedId;
 
-        const isSel = shp.id === selectedId;
         ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.moveTo(verts[0].x, verts[0].y);
+        for (let i = 1; i < verts.length; i++) ctx.lineTo(verts[i].x, verts[i].y);
         ctx.closePath();
 
         if (shp.mode === 'hole') {
-          ctx.fillStyle = isSel ? 'rgba(245, 158, 11, 0.35)' : 'rgba(245, 158, 11, 0.15)';
-          ctx.strokeStyle = isSel ? '#fbbf24' : '#d97706';
-          ctx.setLineDash([5, 4]);
-        } else if (shp.mode === 'shell') {
-          ctx.fillStyle = isSel ? 'rgba(16, 185, 129, 0.28)' : 'rgba(16, 185, 129, 0.14)';
-          ctx.strokeStyle = isSel ? '#3
+          ctx.fillStyle = isSelected ? 'rgba(245, 158, 11, 0.35)' : 'rgba(245, 158, 11, 0.15)';
+          ctx.strokeStyle = isSelected ? '#fbbf24' : '#d97706';
+          ctx.setLineDash([6, 4]);
+        } else if (shp.mode === 'deepen') {
+          ctx.fillStyle = isSelected ? 'rgba(16, 185, 129, 0.30)' : 'rgba(16, 185, 129, 0.15)';
+          ctx.strokeStyle = isSelected ? '#34d399' : '#059669';
+          ctx.setLineDash([]);
+        } else {
+          ctx.fillStyle = isSelected ? 'rgba(56, 189, 248, 0.32)' : 'rgba(37, 99, 235, 0.18)';
+          ctx.strokeStyle = isSelected ? '#38bdf8' : '#3b82f6';
+          ctx.setLineDash([]);
+        }
+
+        ctx.lineWidth = isSelected ? 2.5 : 1.5;
+        ctx.fill();
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Si está en modo "Profundizar", dibujar el borde interior de la pared
+        if (shp.mode === 'deepen') {
+          const inner = getOffsetInnerVertices(shp, shp.wall);
+          ctx.beginPath();
+          ctx.moveTo(inner[0].x, inner[0].y);
+          for (let i = 1; i < inner.length; i++) ctx.lineTo(inner[i].x, inner[i].y);
+          ctx.closePath();
+          ctx.strokeStyle = '#6ee7b7';
+          ctx.setLineDash([4, 4]);
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Indicadores de pieza seleccionada
+        if (isSelected) {
+          // Centro
+          ctx.fillStyle = '#fff';
+          ctx.beginPath();
+          ctx.arc(shp.cx, shp.cy, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Medidas reales en el HUD
+          let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+          verts.forEach(v => {
+            if (v.x < minX) minX = v.x;
+            if (v.x > maxX) maxX = v.x;
+            if (v.y < minY) minY = v.y;
+            if (v.y > maxY) maxY = v.y;
+          });
+          const wMm = ((maxX - minX) * mmPerPx).toFixed(1);
+          const hMm = ((maxY - minY) * mmPerPx).toFixed(1);
+          const modeLabel = shp.mode === 'deepen' ? `Profundizado (Pared ${shp.wall}mm)` : (shp.mode === 'hole' ? 'Perforación' : 'Sólido');
+          document.getElementById('hudCoords').innerText = `${shp.name} [${modeLabel}] — Ancho: ${wMm} mm × Alto: ${hMm} mm × Z: ${shp.height} mm`;
+
+          // Nodos si la herramienta Nodos está activa
+          if (currentTool === 'nodes') {
+            verts.forEach((v, idx) => {
+              ctx.fillStyle = idx === activeNodeIndex ? '#ef4444' : '#ffffff';
+              ctx.strokeStyle = '#090d16';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.arc(v.x, v.y, 7, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.stroke();
+            });
+          }
+        }
+      });
+
+      // 4. Trazo a mano alzada en progreso
+      if (currentTool === 'draw' && freehandBuffer.length > 1) {
+        ctx.beginPath();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.moveTo(freehandBuffer[0].x, freehandBuffer[0].y);
+        for (let i = 1; i < freehandBuffer.length; i++) {
+          ctx.lineTo(freehandBuffer[i].x, freehandBuffer[i].y);
+        }
+        ctx.stroke();
+      }
+    }
+
+    /* =========================================================================
+       2. EVENTOS TÁCTILES Y DE MOUSE EN EL LIENZO
+       ========================================================================= */
+    function getCanvasTouchPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function isPointInsidePolygon(pt, poly) {
+      let inside = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i].x, yi = poly[i].y;
+        const xj = poly[j].x, yj = poly[j].y;
+        const intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function handlePointerStart(e) {
+      e.preventDefault();
+      const pos = getCanvasTouchPos(e);
+
+      if (currentTool === 'draw') {
+        isPointerDown = true;
+        freehandBuffer = [pos];
+        draw2DScene();
+        return;
+      }
+
+      const sel = shapes.find(s => s.id === selectedId);
+
+      // Si estamos en herramienta Nodos, verificar si tocó una esquina
+      if (currentTool === 'nodes' && sel) {
+        const verts = getAbsoluteVertices(sel);
+        for (let i = 0; i < verts.length; i++) {
+          if (Math.hypot(pos.x - verts[i].x, pos.y - verts[i].y) < 20) {
+            isPointerDown = true;
+            activeNodeIndex = i;
+            draw2DScene();
+            return;
+          }
+        }
+      }
+
+      // Buscar si tocó alguna figura para seleccionarla y moverla
+      for (let i = shapes.length - 1; i >= 0; i--) {
+        const shp = shapes[i];
+        if (isPointInsidePolygon(pos, getAbsoluteVertices(shp))) {
+          selectShapeById(shp.id);
+          isPointerDown = true;
+          dragOffset = { x: pos.x - shp.cx, y: pos.y - shp.cy };
+          draw2DScene();
+          return;
+        }
+      }
+    }
+
+    function handlePointerMove(e) {
+      if (!isPointerDown) return;
+      e.preventDefault();
+      const pos = getCanvasTouchPos(e);
+
+      if (currentTool === 'draw') {
+        const last = freehandBuffer[freehandBuffer.length - 1];
+        if (Math.hypot(pos.x - last.x, pos.y - last.y) > 5) {
+          freehandBuffer.push(pos);
+          draw2DScene();
+        }
+        return;
+      }
+
+      const sel = shapes.find(s => s.id === selectedId);
+      if (!sel) return;
+
+      if (currentTool === 'nodes' && activeNodeIndex !== -1) {
+        const sx = snapPx(pos.x);
+        const sy = snapPx(pos.y);
+        const rad = (-sel.rot * Math.PI) / 180;
+        const dx = sx - sel.cx;
+        const dy = sy - sel.cy;
+        sel.pts[activeNodeIndex] = {
+          x: (dx * Math.cos(rad) - dy * Math.sin(rad)) / sel.scale,
+          y: (dx * Math.sin(rad) + dy * Math.cos(rad)) / sel.scale
+        };
+        draw2DScene();
+        return;
+      }
+
+      if (currentTool === 'move') {
+        sel.cx = snapPx(pos.x - dragOffset.x);
+        sel.cy = snapPx(pos.y - dragOffset.y);
+        draw2DScene();
+      }
+    }
+
+    function handlePointerEnd() {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+      activeNodeIndex = -1;
+
+      if (currentTool === 'draw') {
+        if (freehandBuffer.length > 3) {
+          // Calcular centroide del trazo libre
+          let sx = 0, sy = 0;
+          freehandBuffer.forEach(p => { sx += p.x; sy += p.y; });
+          const cx = sx / freehandBuffer.length;
+          const cy = sy / freehandBuffer.length;
+          const relPts = freehandBuffer.map(p => ({ x: p.x - cx, y: p.y - cy }));
+
+          addNewShape({
+            name: `Trazo ${shapes.length + 1}`,
+            cx, cy,
+            pts: relPts,
+            mode: 'solid',
+            height: 15
+          });
+          activateTool('move');
+        }
+        freehandBuffer = [];
+      }
+      draw2DScene();
+    }
+
+    canvas.addEventListener('touchstart', handlePointerStart, { passive: false });
+    canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+    canvas.addEventListener('touchend', handlePointerEnd, { passive: false });
+    canvas.addEventListener('mousedown', handlePointerStart);
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerEnd);
+
+    /* =========================================================================
+       3. CONTROLES DEL INSPECTOR Y BOTONES DE BARRA
+       ========================================================================= */
+    function activateTool(tool) {
+      currentTool = tool;
+      document.querySelectorAll('.tool-btn[data-tool]').forEach(b => {
+        b.classList.toggle('active', b.dataset.tool === tool);
+      });
+      draw2DScene();
+    }
+
+    document.querySelectorAll('.tool-btn[data-tool]').forEach(b => {
+      b.addEventListener('click', () => activateTool(b.dataset.tool));
+    });
+
+    // Botones para agregar figuras rápidamente
+    document.getElementById('btnAddBox').addEventListener('click', () => {
+      addNewShape({
+        name: `Caja ${shapes.length + 1}`,
+        pts: makeRectPoints(80, 60),
+        mode: 'deepen',
+        height: 25,
+        wall: 3.0,
+        floor: 2.5
+      });
+      activateTool('move');
+    });
+
+    document.getElementById('btnAddRect').addEventListener('click', () => {
+      addNewShape({
+        name: `Bloque ${shapes.length + 1}`,
+        pts: makeRectPoints(65, 45),
+        mode: 'solid',
+        height: 12
+      });
+      activateTool('move');
+    });
+
+    document.getElementById('btnAddCircle').addEventListener('click', () => {
+      addNewShape({
+        name: `Cilindro ${shapes.length + 1}`,
+        pts: makePolygonPoints(18, 32),
+        mode: 'solid',
+        height: 20
+      });
+      activateTool('move');
+    });
+
+    document.getElementById('btnAddHex').addEventListener('click', () => {
+      addNewShape({
+        name: `Hexágono ${shapes.length + 1}`,
+        pts: makePolygonPoints(22, 6),
+        mode: 'solid',
+        height: 15
+      });
+      activateTool('move');
+    });
+
+    function selectShapeById(id) {
+      selectedId = id;
+      renderShapesListUI();
+      const shp = shapes.find(s => s.id === id);
+      const panel = document.getElementById('inspectorProps');
+      if (!shp) {
+        panel.style.opacity = '0.35';
+        panel.style.pointerEvents = 'none';
+        return;
+      }
+      panel.style.opacity = '1';
+      panel.style.pointerEvents = 'auto';
+
+      document.getElementById('lblSelectedTitle').innerText = shp.name;
+
+      // Actualizar botones de modo (Sólido, Profundizar, Perforar)
+      document.querySelectorAll('.mode-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.dataset.mode === shp.mode);
+      });
+
+      // Mostrar u ocultar controles de Profundizar
+      document.getElementById('deepenControls').style.display = shp.mode === 'deepen' ? 'flex' : 'none';
+
+      document.getElementById('slWall').value = shp.wall;
+      document.getElementById('valWall').innerText = `${shp.wall.toFixed(1)} mm`;
+
+      document.getElementById('slFloor').value = shp.floor;
+      document.getElementById('valFloor').innerText = `${shp.floor.toFixed(1)} mm`;
+
+      document.getElementById('slHeight').value = shp.height;
+      document.getElementById('valHeight').innerText = `${shp.height} mm`;
+
+      document.getElementById('slZ0').value = shp.z0;
+      document.getElementById('valZ0').innerText = `${shp.z0} mm`;
+
+      const sc = Math.round(shp.scale * 100);
+      document.getElementById('slScale').value = sc;
+      document.getElementById('valScale').innerText = `${sc}%`;
+
+      document.getElementById('slRot').value = shp.rot;
+      document.getElementById('valRot').innerText = `${shp.rot}°`;
+    }
+
+    function renderShapesListUI() {
+      const list = document.getElementById('shapesListContainer');
+      list.innerHTML = '';
+      shapes.forEach(s => {
+        const icon = s.mode === 'deepen' ? '📐' : (s.mode === 'hole' ? '➖' : '➕');
+        const item = document.createElement('div');
+        item.className = `shape-item ${s.id === selectedId ? 'selected' : ''}`;
+        item.innerHTML = `<span>${icon}</span><span>${s.name}</span>`;
+        item.addEventListener('click', () => {
+          selectShapeById(s.id);
+          draw2DScene();
+        });
+        list.appendChild(item);
+      });
+    }
+
+    // Cambiar entre Sólido, Profundizar y Perforar
+    document.querySelectorAll('.mode-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const shp = shapes.find(s => s.id === selectedId);
+        if (!shp) return;
+        shp.mode = pill.dataset.mode;
+        selectShapeById(shp.id);
+        draw2DScene();
+      });
+    });
+
+    // Eventos de Sliders
+    document.getElementById('slWall').addEventListener('input', e => {
+      const shp = shapes.find(s => s.id === selectedId);
+      if (shp) {
+        shp.wall = parseFloat(e.target.value);
+        document.getElementById('valWall').innerText = `${shp.wall.toFixed(1)} mm`;
+        draw2DScene();
+      }
+    });
+
+    document.getElementById('slFloor').addEventListener('input', e => {
+      const shp = shapes.find(s => s.id === selectedId);
+      if (shp) {
+        shp.floor = parseFloat(e.target.value);
+        document.getElementById('valFloor').innerText = `${shp.floor.toFixed(1)} mm`;
+      }
+    });
+
+    document.getElementById('slHeight').addEventListener('input', e => {
+      const shp = shapes.find(s => s.id === selectedId);
+      if (shp) {
+        shp.height = parseFloat(e.target.value);
+        document.getElementById('valHeight').innerText = `${shp.height} mm`;
+        draw2DScene();
+      }
+    });
+
+    document.getElementById('slZ0').addEventListener('input', e => {
+      const shp = shapes.find(s => s.id === selectedId);
+      if (shp) {
+        shp.z0 = parseFloat(e.target.value);
+        document.getElementById('valZ0').innerText = `${shp.z0} mm`;
+      }
+    });
+
+    document.getElementById('slScale').addEventListener('input', e => {
+      const shp = shapes.find(s => s.id === selectedId);
+      if (shp) {
+        shp.scale = parseFloat(e.target.value) / 100;
+        document.getElementById('valScale').innerText = `${e.target.value}%`;
+        draw2DScene();
+      }
+    });
+
+    document.getElementById('slRot').addEventListener('input', e => {
+      const shp = shapes.find(s => s.id === selectedId);
+      if (shp) {
+        shp.rot = parseFloat(e.target.value);
+        document.getElementById('valRot').innerText = `${shp.rot}°`;
+        draw2DScene();
+      }
+    });
+
+    // Suavizar esquinas
+    document.getElementById('btnSmoothPts').addEventListener('click', () => {
+      const shp = shapes.find(s => s.id === selectedId);
+      if (!shp || shp.pts.length < 3 || shp.pts.length > 80) return;
+      const next = [];
+      for (let i = 0; i < shp.pts.length; i++) {
+        const p0 = shp.pts[i];
+        const p1 = shp.pts[(i + 1) % shp.pts.length];
+        next.push({ x: 0.75 * p0.x + 0.25 * p1.x, y: 0.75 * p0.y + 0.25 * p1.y });
+        next.push({ x: 0.25 * p0.x + 0.75 * p1.x, y: 0.25 * p0.y + 0.75 * p1.y });
+      }
+      shp.pts = next;
+      draw2DScene();
+    });
+
+    // Copiar y Borrar pieza
+    document.getElementById('btnCopyShape').addEventListener('click', () => {
+      const shp = shapes.find(s => s.id === selectedId);
+      if (!shp) return;
+      addNewShape({
+        name: shp.name + ' Copia',
+        cx: shp.cx + 25,
+        cy: shp.cy + 25,
+        pts: shp.pts.map(p => ({ x: p.x, y: p.y })),
+        mode: shp.mode,
+        height: shp.height,
+        wall: shp.wall,
+        floor: shp.floor,
+        z0: shp.z0
+      });
+    });
+
+    document.getElementById('btnDelShape').addEventListener('click', () => {
+      if (!selectedId) return;
+      shapes = shapes.filter(s => s.id !== selectedId);
+      selectedId = shapes.length ? shapes[shapes.length - 1].id : null;
+      selectShapeById(selectedId);
+      draw2DScene();
+    });
+
+    document.getElementById('btnToggleSnap').addEventListener('click', e => {
+      snapToGrid = !snapToGrid;
+      e.target.innerText = `🧲 Imán: ${snapToGrid ? 'ON' : 'OFF'}`;
+    });
+
+    /* =========================================================================
+       4. MOTOR 3D (Con soporte de Sólidos, Profundizado con Piso y Perforaciones)
+       ========================================================================= */
+    let scene, camera, renderer, controls, modelGroup;
+    let wireframeMode = false;
+    const stage3D = document.getElementById('stage3D');
+    const webglContainer = document.getElementById('webglContainer');
+
+    function init3DEngine() {
+      if (renderer || typeof THREE === 'undefined') return;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x060a12);
+
+      camera = new THREE.PerspectiveCamera(45, 1, 1, 1500);
+      camera.position.set(0, -195, 175);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      webglContainer.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+      const dLight = new THREE.DirectionalLight(0xffffff, 0.85);
+      dLight.position.set(100, -120, 220);
+      scene.add(dLight);
+
+      const grid = new THREE.GridHelper(BED_MM, 22, 0x0284c7, 0x1e293b);
+      grid.rotation.x = Math.PI / 2;
+      scene.add(grid);
+
+      modelGroup = new THREE.Group();
+      scene.add(modelGroup);
+
+      function animate3D() {
+        requestAnimationFrame(animate3D);
+        if (stage3D.style.display === 'block') {
+          controls.update();
+          renderer.render(scene, camera);
+        }
+      }
+      animate3D();
+    }
+
+    function rebuild3DGeometry() {
+      init3DEngine();
+      if (!modelGroup) return;
+
+      while (modelGroup.children.length > 0) {
+        const m = modelGroup.children[0];
+        m.geometry.dispose();
+        modelGroup.remove(m);
+      }
+
+      const holes = shapes.filter(s => s.mode === 'hole');
+      const midPx = canvasSizePx / 2;
+
+      function vertsToVec2(verts) {
+        return verts.map(v => new THREE.Vector2(
+          (v.x - midPx) * mmPerPx,
+          -(v.y - midPx) * mmPerPx
+        ));
+      }
+
+      shapes.forEach(shp => {
+        if (shp.mode === 'hole') return;
+
+        const outerVerts = getAbsoluteVertices(shp);
+        if (outerVerts.length < 3) return;
+
+        const mat = new THREE.MeshStandardMaterial({
+          color: shp.mode === 'deepen' ? 0x10b981 : 0x2563eb,
+          roughness: 0.35,
+          metalness: 0.15,
+          wireframe: wireframeMode
+        });
+
+        if (shp.mode === 'solid') {
+          const threeShape = new THREE.Shape(vertsToVec2(outerVerts));
+
+          // Aplicar perforaciones que estén dentro de este sólido
+          holes.forEach(h => {
+            if (isPointInsidePolygon({ x: h.cx, y: h.cy }, outerVerts)) {
+              const holePath = new THREE.Path(vertsToVec2(getAbsoluteVertices(h)));
+              threeShape.holes.push(holePath);
+            }
+          });
+
+          const geom = new THREE.ExtrudeGeometry(threeShape, { depth: shp.height, bevelEnabled: false });
+          geom.computeBoundingBox();
+          geom.translate(0, 0, -geom.boundingBox.min.z + shp.z0);
+          modelGroup.add(new THREE.Mesh(geom, mat));
+
+        } else if (shp.mode === 'deepen') {
+          // 1. Piso inferior sólido (si el espesor de piso > 0)
+          const floorH = Math.min(shp.floor, shp.height);
+          if (floorH > 0) {
+            const floorShape = new THREE.Shape(vertsToVec2(outerVerts));
+            holes.forEach(h => {
+              if (isPointInsidePolygon({ x: h.cx, y: h.cy }, outerVerts)) {
+                floorShape.holes.push(new THREE.Path(vertsToVec2(getAbsoluteVertices(h))));
+              }
+            });
+            const floorGeom = new THREE.ExtrudeGeometry(floorShape, { depth: floorH, bevelEnabled: false });
+            floorGeom.computeBoundingBox();
+            floorGeom.translate(0, 0, -floorGeom.boundingBox.min.z + shp.z0);
+            modelGroup.add(new THREE.Mesh(floorGeom, mat));
+          }
+
+          // 2. Paredes perimetrales (desde la altura del piso hasta la altura total Z)
+          const wallHeight = shp.height - floorH;
+          if (wallHeight > 0.2) {
+            const wallShape = new THREE.Shape(vertsToVec2(outerVerts));
+            const innerVerts = getOffsetInnerVertices(shp, shp.wall);
+            wallShape.holes.push(new THREE.Path(vertsToVec2(innerVerts)));
+
+            const wallGeom = new THREE.ExtrudeGeometry(wallShape, { depth: wallHeight, bevelEnabled: false });
+            wallGeom.computeBoundingBox();
+            wallGeom.translate(0, 0, -wallGeom.boundingBox.min.z + shp.z0 + floorH);
+            modelGroup.add(new THREE.Mesh(wallGeom, mat));
+          }
+        }
+      });
+
+      const box = new THREE.Box3().setFromObject(modelGroup);
+      if (!box.isEmpty()) {
+        const dx = (box.max.x - box.min.x).toFixed(1);
+        const dy = (box.max.y - box.min.y).toFixed(1);
+        const dz = (box.max.z - box.min.z).toFixed(1);
+        document.getElementById('infoBox3D').innerHTML = `
+          <b>Dimensiones del Conjunto:</b><br>
+          X: ${dx} mm | Y: ${dy} mm | Z: ${dz} mm
+        `;
+      }
+    }
+
+    // Cambio de pestañas 2D / 3D
+    document.getElementById('btnTab2D').addEventListener('click', () => {
+      document.getElementById('btnTab2D').classList.add('active');
+      document.getElementById('btnTab3D').classList.remove('active');
+      stage3D.style.display = 'none';
+      draw2DScene();
+    });
+
+    document.getElementById('btnTab3D').addEventListener('click', () => {
+      document.getElementById('btnTab3D').classList.add('active');
+      document.getElementById('btnTab2D').classList.remove('active');
+      stage3D.style.display = 'block';
+
+      init3DEngine();
+      const w = stage3D.clientWidth;
+      const h = stage3D.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+      rebuild3DGeometry();
+    });
+
+    document.getElementById('btnViewTop').addEventListener('click', () => {
+      if (!camera) return;
+      camera.position.set(0, 0, 260);
+      controls.target.set(0, 0, 0);
+    });
+
+    document.getElementById('btnViewIso').addEventListener('click', () => {
+      if (!camera) return;
+      camera.position.set(0, -195, 175);
+      controls.target.set(0, 0, 0);
+    });
+
+    document.getElementById('btnViewWire').addEventListener('click', () => {
+      wireframeMode = !wireframeMode;
+      rebuild3DGeometry();
+    });
+
+    /* =========================================================================
+       5. EXPORTADOR STL BINARIO DIRECTO
+       ========================================================================= */
+    document.getElementById('btnDownloadSTL').addEventListener('click', () => {
+      rebuild3DGeometry();
+      if (!modelGroup || modelGroup.children.length === 0) {
+        alert("Agrega al menos una pieza antes de descargar el archivo STL.");
+        return;
+      }
+
+      let totalTris = 0;
+      const geoms = [];
+      modelGroup.children.forEach(mesh => {
+        const g = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+        geoms.push(g);
+        totalTris += g.attributes.position.count / 3;
+      });
+
+      const buffer = new ArrayBuffer(84 + totalTris * 50);
+      const view = new DataView(buffer);
+      for (let i = 0; i < 80; i++) view.setUint8(i, 32);
+      view.setUint32(80, totalTris, true);
+
+      let offset = 84;
+      const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3();
+      const cb = new THREE.Vector3(), ab = new THREE.Vector3();
+
+      geoms.forEach(g => {
+        const pos = g.attributes.position;
+        for (let i = 0; i < pos.count; i += 3) {
+          vA.fromBufferAttribute(pos, i);
+          vB.fromBufferAttribute(pos, i + 1);
+          vC.fromBufferAttribute(pos, i + 2);
+
+          cb.subVectors(vC, vB);
+          ab.subVectors(vA, vB);
+          cb.cross(ab).normalize();
+
+          view.setFloat32(offset, cb.x, true);
+          view.setFloat32(offset + 4, cb.y, true);
+          view.setFloat32(offset + 8, cb.z, true);
+          offset += 12;
+
+          [vA, vB, vC].forEach(v => {
+            view.setFloat32(offset, v.x, true);
+            view.setFloat32(offset + 4, v.y, true);
+            view.setFloat32(offset + 8, v.z, true);
+            offset += 12;
+          });
+
+          view.setUint16(offset, 0, true);
+          offset += 2;
+        }
+      });
+
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `sketch3d_${Date.now()}.stl`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    /* =========================================================================
+       6. INICIALIZACIÓN INMEDIATA AL CARGAR LA PÁGINA
+       ========================================================================= */
+    fitCanvasToScreen();
+    addNewShape({
+      name: 'Caja Principal',
+      pts: makeRectPoints(90, 65),
+      mode: 'deepen',
+      height: 25,
+      wall: 3.0,
+      floor: 2.5
+    });
+  </script>
+</body>
+</html>
